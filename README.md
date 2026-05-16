@@ -55,17 +55,17 @@ Al usar MVC en ASP.NET, el **Modelo** gestionará todas las reglas de negocio pu
 
 ### Consecuencias
 
-**✅ Lo que gano:**
+** Lo que gano:**
 * **Consecuencia técnica (Escalabilidad y Testing):** El sistema se vuelve altamente modular. Al estar separada la lógica en el Modelo, podré realizar pruebas unitarias (*Unit Testing*) de los algoritmos de daño e IA sin tener que cargar o depender de la interfaz web. Además, agregar nuevas generaciones en el futuro será cuestión de extender los Modelos sin reescribir la aplicación web.
 * **Consecuencia sobre el proceso:** Esta separación me permite dividir mi trabajo en fases claras: primero enfocarme puramente en la lógica de combate (Back-end) y posteriormente en el diseño y presentación visual (Front-end), sin que los errores de uno afecten al otro.
 
-**⚠️ Lo que sacrifico o asumo:**
+** Lo que sacrifico o asumo:**
 * **Limitación técnica:** Mayor sobrecarga inicial de código (*Boilerplate*). Implementar MVC requiere crear una estructura de carpetas estricta, mapeo de rutas y transferencia de datos entre Controladores y Vistas, lo cual exige más tiempo de configuración inicial.
 * **Deuda o riesgo:** El motor de IA, al evaluar cientos de posibles ramificaciones de movimientos y habilidades en un turno, podría generar cuellos de botella en el rendimiento del servidor (memoria y CPU) si el algoritmo de búsqueda C# no se optimiza adecuadamente conforme el proyecto escale y se agreguen más combinaciones.
 
 ---
 
-## 🗺️ Estructura Inicial de Datos (Modelos)
+##  Estructura Inicial de Datos (Modelos)
 Para que el motor de simulación funcione, el **Modelo** manejará las siguientes entidades clave en C#:
 
 1.  **`Pokemon`:** Contiene nombre, tipos elementales, estadísticas base/actuales (PS, Ataque, Defensa, Especial, Velocidad) y estados alterados.
