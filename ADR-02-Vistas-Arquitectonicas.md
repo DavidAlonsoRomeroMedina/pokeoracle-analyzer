@@ -1,4 +1,4 @@
-﻿# ADR-02: Definición de Vistas Arquitectónicas (Modelo 4+1 adaptado)
+# ADR-02: Definición de Vistas Arquitectónicas (Modelo 4+1 adaptado)
 
 | Campo  | Valor |
 |--------|-------|
@@ -137,7 +137,7 @@ classDiagram
     class Pokemon {
         +String Nombre
         +int PuntosSalud
-        +List~Movimiento~ Ataques
+        +ListOfMovimiento Ataques
         +RecibirDano()
     }
     class Movimiento {
