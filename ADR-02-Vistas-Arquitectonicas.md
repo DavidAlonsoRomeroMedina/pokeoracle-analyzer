@@ -62,10 +62,10 @@ classDiagram
         +int Precision
     }
     
-    BatallaController --> MotorIAPredictiva : Solicita análisis
-    MotorIAPredictiva --> Pokemon : Evalúa estado
+    BatallaController --> MotorIAPredictiva : Solicita analisis
+    MotorIAPredictiva --> Pokemon : Evalua estado
     Pokemon "1" *-- "4" Movimiento : Posee
-
+```
 
 ### 2. Vista de Procesos
 
@@ -75,40 +75,40 @@ sequenceDiagram
     participant BatallaController
     participant MotorIAPredictiva
     
-    Jugador->>VistaWeb: Selecciona Atacar (Ej. Rayo)
+    Jugador->>VistaWeb: Selecciona Atacar (Rayo)
     VistaWeb->>BatallaController: POST /EjecutarTurno
-    BatallaController->>MotorIAPredictiva: Enviar estado actual (Jugador vs IA)
+    BatallaController->>MotorIAPredictiva: Enviar estado actual
     activate MotorIAPredictiva
-    MotorIAPredictiva-->>MotorIAPredictiva: Proyectar árbol Expectiminimax
-    MotorIAPredictiva-->>MotorIAPredictiva: Calcular daño y RNG
-    MotorIAPredictiva-->>BatallaController: Retornar acción óptima y resultado
+    MotorIAPredictiva-->>MotorIAPredictiva: Proyectar arbol Expectiminimax
+    MotorIAPredictiva-->>MotorIAPredictiva: Calcular dano y RNG
+    MotorIAPredictiva-->>BatallaController: Retornar accion optima y resultado
     deactivate MotorIAPredictiva
     BatallaController->>VistaWeb: Renderizar nuevo estado (ViewModel)
     VistaWeb->>Jugador: Mostrar barras de HP actualizadas
-
+```
 
 ### 3. Vista Física
 
 flowchart TD
-    subgraph Entorno de Usuario
+    subgraph Entorno_de_Usuario
         PC[Computadora / Dispositivo Movil]
     end
 
-    subgraph Centro de Datos / Nube
+    subgraph Centro_de_Datos
         Server[Servidor Web / Host en la nube]
     end
 
     PC <-->|Internet / HTTPS| Server
+```
 
-
-4. Vista de Despliegue
+### 4. Vista de Despliegue
 
 flowchart TD
-    subgraph Servidor de Aplicaciones
-        subgraph Entorno de Ejecucion NET Core
+    subgraph Servidor_de_Aplicaciones
+        subgraph Entorno_NET_Core
             DLL[PokeOracle.dll]
-            Views[Archivos cshtml Vistas Razor]
-            Static[Archivos Estaticos CSS y JS]
+            Views[Vistas Razor - cshtml]
+            Static[Archivos Estaticos - CSS y JS]
         end
     end
 
@@ -116,15 +116,12 @@ flowchart TD
     ## Consecuencias
 
     ** Lo que gano:**
-
     * **Consecuencia técnica:** Al tener una Vista Lógica clara, la programación orientada a objetos en C# se agiliza enormemente, ya que sé exactamente qué atributos debe tener cada entidad (Pokemon, Movimiento) antes de escribir la primera línea de código.
     * **Consecuencia sobre el proceso:** Trabajar con la Vista de Procesos me sirve como guía paso a paso para programar el Controlador, evitando saltarme pasos en la validación de los turnos.
 
-    ** Lo que sacrifico o asumo:**
-
+** Lo que pierdo o asumo:**
     * **Limitación técnica:** Estos diagramas representan una "foto fija" del plan actual. Si decido cambiar radicalmente la arquitectura de la IA más adelante, tendré que invertir tiempo en redibujar e iterar estos diagramas.
     * **Deuda o riesgo:** La Vista Física y de Despliegue es actualmente muy sencilla. Si el simulador escala a miles de usuarios, tendré que actualizarla para incluir balanceadores de carga y bases de datos relacionales, lo que incrementará la complejidad del despliegue.
-
 
     ---
 
