@@ -62,54 +62,50 @@ classDiagram
         +int Precision
     }
     
-    BatallaController --> MotorIAPredictiva : "Solicita análisis"
-    MotorIAPredictiva --> Pokemon : "Evalúa estado"
-    Pokemon "1" *-- "4" Movimiento : "Posee"
+    BatallaController --> MotorIAPredictiva : Solicita análisis
+    MotorIAPredictiva --> Pokemon : Evalúa estado
+    Pokemon "1" *-- "4" Movimiento : Posee
 
     ### 2. Vista de Procesos
-*Describe el comportamiento dinámico. Qué sucede paso a paso en un turno de combate.*
 
-```mermaid
 sequenceDiagram
     actor Jugador
-    participant Vista Web
+    participant VistaWeb as Vista Web
     participant BatallaController
     participant MotorIAPredictiva
     
-    Jugador->>Vista Web: Selecciona "Atacar" (Ej. Rayo)
-    Vista Web->>BatallaController: POST /EjecutarTurno
+    Jugador->>VistaWeb: Selecciona Atacar (Ej. Rayo)
+    VistaWeb->>BatallaController: POST /EjecutarTurno
     BatallaController->>MotorIAPredictiva: Enviar estado actual (Jugador vs IA)
     activate MotorIAPredictiva
     MotorIAPredictiva-->>MotorIAPredictiva: Proyectar árbol Expectiminimax
     MotorIAPredictiva-->>MotorIAPredictiva: Calcular daño y RNG
     MotorIAPredictiva-->>BatallaController: Retornar acción óptima y resultado
     deactivate MotorIAPredictiva
-    BatallaController->>Vista Web: Renderizar nuevo estado (ViewModel)
-    Vista Web->>Jugador: Mostrar barras de HP actualizadas
+    BatallaController->>VistaWeb: Renderizar nuevo estado (ViewModel)
+    VistaWeb->>Jugador: Mostrar barras de HP actualizadas
 
     ### 3. Vista Física
-*Representa la topología de la red y el hardware involucrado.*
 
-```mermaid
 flowchart TD
     subgraph Entorno de Usuario
-        PC[Computadora / Dispositivo Móvil\nNavegador Web]
+        PC[Computadora / Dispositivo Movil]
     end
 
     subgraph Centro de Datos / Nube
-        Server[Servidor Web / Host\nCPU multi-núcleo optimizado para cálculos lógicos]
+        Server[Servidor Web / Host en la nube]
     end
 
     PC <-->|Internet / HTTPS| Server
 
-    ### 4. Vista de Despliegue
+
 
     flowchart TD
-    subgraph Servidor de Aplicaciones (Host)
-        subgraph Entorno de Ejecución .NET Core
-            DLL[PokeOracle.dll\nClases, Lógica y Motor IA]
-            Views[Archivos .cshtml\nVistas Razor]
-            Static[Archivos Estáticos\nCSS, JS, Imágenes Pokémon]
+    subgraph Servidor de Aplicaciones
+        subgraph Entorno de Ejecucion NET Core
+            DLL[PokeOracle.dll]
+            Views[Archivos cshtml Vistas Razor]
+            Static[Archivos Estaticos CSS y JS]
         end
     end
 
