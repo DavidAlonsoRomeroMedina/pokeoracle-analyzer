@@ -65,3 +65,24 @@ classDiagram
     BatallaController --> MotorIAPredictiva : "Solicita análisis"
     MotorIAPredictiva --> Pokemon : "Evalúa estado"
     Pokemon "1" *-- "4" Movimiento : "Posee"
+
+    ### 2. Vista de Procesos
+*Describe el comportamiento dinámico. Qué sucede paso a paso en un turno de combate.*
+
+```mermaid
+sequenceDiagram
+    actor Jugador
+    participant Vista Web
+    participant BatallaController
+    participant MotorIAPredictiva
+    
+    Jugador->>Vista Web: Selecciona "Atacar" (Ej. Rayo)
+    Vista Web->>BatallaController: POST /EjecutarTurno
+    BatallaController->>MotorIAPredictiva: Enviar estado actual (Jugador vs IA)
+    activate MotorIAPredictiva
+    MotorIAPredictiva-->>MotorIAPredictiva: Proyectar árbol Expectiminimax
+    MotorIAPredictiva-->>MotorIAPredictiva: Calcular daño y RNG
+    MotorIAPredictiva-->>BatallaController: Retornar acción óptima y resultado
+    deactivate MotorIAPredictiva
+    BatallaController->>Vista Web: Renderizar nuevo estado (ViewModel)
+    Vista Web->>Jugador: Mostrar barras de HP actualizadas
