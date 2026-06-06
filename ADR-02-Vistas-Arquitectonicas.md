@@ -66,7 +66,8 @@ classDiagram
     MotorIAPredictiva --> Pokemon : Evalúa estado
     Pokemon "1" *-- "4" Movimiento : Posee
 
-    ### 2. Vista de Procesos
+
+### 2. Vista de Procesos
 
 sequenceDiagram
     actor Jugador
@@ -85,7 +86,8 @@ sequenceDiagram
     BatallaController->>VistaWeb: Renderizar nuevo estado (ViewModel)
     VistaWeb->>Jugador: Mostrar barras de HP actualizadas
 
-    ### 3. Vista Física
+
+### 3. Vista Física
 
 flowchart TD
     subgraph Entorno de Usuario
@@ -99,8 +101,9 @@ flowchart TD
     PC <-->|Internet / HTTPS| Server
 
 
+4. Vista de Despliegue
 
-    flowchart TD
+flowchart TD
     subgraph Servidor de Aplicaciones
         subgraph Entorno de Ejecucion NET Core
             DLL[PokeOracle.dll]
@@ -108,6 +111,7 @@ flowchart TD
             Static[Archivos Estaticos CSS y JS]
         end
     end
+
 
     ## Consecuencias
 
