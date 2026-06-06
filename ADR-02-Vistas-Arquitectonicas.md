@@ -1,4 +1,4 @@
-# ADR-02: Definición de Vistas Arquitectónicas (Modelo 4+1 adaptado)
+# ADR-02: Definicion de Vistas Arquitectonicas (Modelo 4+1 adaptado)
 
 | Campo  | Valor |
 |--------|-------|
@@ -10,118 +10,34 @@
 
 ## Contexto
 
-Tras definir que PokeOracle utilizará el patrón MVC en ASP.NET Core con un motor Expectiminimax para la lógica de Inteligencia Artificial (ADR-01), es necesario documentar las perspectivas del sistema para los distintos perfiles técnicos (desarrolladores, arquitectos y operaciones). Se requiere establecer cómo se estructura el código, cómo interactúan los componentes en tiempo de ejecución y cómo se distribuirá el software en la infraestructura de hardware, cumpliendo con los estándares de documentación del proyecto.
+Tras definir que PokeOracle utilizara el patron MVC en ASP.NET Core con un motor Expectiminimax para la logica de Inteligencia Artificial (ADR-01), es necesario documentar las perspectivas del sistema para los distintos perfiles tecnicos (desarrolladores, arquitectos y operaciones). Se requiere establecer como se estructura el codigo, como interactuan los componentes en tiempo de ejecucion y como se distribuira el software en la infraestructura de hardware, cumpliendo con los estandares de documentacion del proyecto.
 
 ---
 
-## Decisión
+## Decision
 
-Se ha decidido implementar una adaptación del **Modelo de Vistas Arquitectónicas** para representar el sistema desde 4 perspectivas fundamentales mediante diagramas de Mermaid: Lógica, Procesos, Física y Despliegue.
+Se ha decidido implementar una adaptacion del **Modelo de Vistas Arquitectonicas** para representar el sistema desde 4 perspectivas fundamentales mediante diagramas de Mermaid: Logica, Procesos, Fisica y Despliegue.
 
-### ¿Por qué?
+### Por que?
 
 Un solo diagrama C4 no es suficiente para explicar la complejidad del motor predictivo.
-* La **Vista Lógica** facilita el desarrollo al mapear las clases orientadas a objetos (Modelos).
-* La **Vista de Procesos** es crítica para entender el flujo asíncrono y la evaluación de árboles de decisión turno por turno.
-* Las **Vistas Física y de Despliegue** aseguran que los recursos del servidor web estén correctamente dimensionados para soportar los cálculos algorítmicos sin saturar el entorno.
+* La **Vista Logica** facilita el desarrollo al mapear las clases orientadas a objetos (Modelos).
+* La **Vista de Procesos** es critica para entender el flujo asincrono y la evaluacion de arboles de decision turno por turno.
+* Las **Vistas Fisica y de Despliegue** aseguran que los recursos del servidor web esten correctamente dimensionados para soportar los calculos algoritmicos sin saturar el entorno.
 
 ### Alternativas consideradas
 
-| Alternativa | Por qué la descarté |
+| Alternativa | Por que la descarte |
 |-------------|---------------------|
-| **Mantener un único diagrama general (C4 Nivel 2)** | No ofrece el nivel de detalle necesario para programar la interacción exacta entre la IA y el Controlador, dejando ambigüedades en la implementación. |
-| **UML Completo (Casos de uso, Estados, Actividad)** | Generaría un exceso de documentación (*Over-engineering*) innecesario para el tamaño actual del simulador. |
-| **Documentación puramente textual** | Explicar el ciclo de eventos del Minimax sin diagramas de secuencia resulta confuso y propenso a errores de interpretación. |
+| **Mantener un unico diagrama general (C4 Nivel 2)** | No ofrece el nivel de detalle necesario para programar la interaccion exacta entre la IA y el Controlador, dejando ambiguedades en la implementacion. |
+| **UML Completo (Casos de uso, Estados, Actividad)** | Generaria un exceso de documentacion innecesario para el tamano actual del simulador. |
+| **Documentacion puramente textual** | Explicar el ciclo de eventos del Minimax sin diagramas de secuencia resulta confuso y propenso a errores de interpretacion. |
 
 ---
 
 ## Diagramas de las 4 Vistas
 
-### 1. Vista Lógica
-
-````mermaid
-classDiagram
-    class BatallaController {
-        +RecibirTurno(accion)
-        +ActualizarVista()
-    }
-    class MotorIAPredictiva {
-        -int ProfundidadArbol
-        +EvaluarExpectiminimax(estadoActual)
-        +GenerarHeuristica()
-    }
-    class Pokemon {
-        +String Nombre
-        +int PuntosSalud
-        +ListOfMovimiento Ataques
-        +RecibirDano()
-    }
-    class Movimiento {
-        +String Tipo
-        +int Potencia
-        +int Precision
-    }
-
-    BatallaController --> MotorIAPredictiva : Solicita analisis
-    MotorIAPredictiva --> Pokemon : Evalua estado
-    Pokemon "1" *-- "4" Movimiento : Posee
-` `` 
-````
-
-Espera — el problema raíz no es `List~Movimiento~`. Las tildes `~` **sí son la sintaxis oficial de Mermaid para genéricos** en `classDiagram`. El parse error real que aparece en la imagen dice:
-
-> *Parse error on line 28: …ovimiento : Posee### 2. Vista de Proc*
-
-Eso significa que el parser está leyendo `### 2. Vista de Proc` **dentro** del bloque Mermaid, lo cual ocurre cuando el cierre del bloque de código (` ``` `) está pegado directamente a contenido sin salto de línea, o hay caracteres especiales en los labels de las relaciones.
-
-Los dos problemas concretos son:
-
-1. **El label `Posee` con el acento en `ó` / `é` en los labels de flechas** — a veces el parser falla con tildes españolas en los labels de relación.
-2. **Caracteres acentuados** (`á`, `é`, `ó`) en los `sequenceDiagram` también pueden romper ciertos parsers.
-
-Aquí el ADR completo y depurado, sin ningún carácter problemático dentro de los bloques Mermaid:
-
-````markdown
-# ADR-02: Definición de Vistas Arquitectónicas (Modelo 4+1 adaptado)
-
-| Campo  | Valor |
-|--------|-------|
-| Autor  | David Alonso Romero Medina |
-| Fecha  | 05/06/2026 |
-| Estado | `Propuesto` |
-
----
-
-## Contexto
-
-Tras definir que PokeOracle utilizará el patrón MVC en ASP.NET Core con un motor Expectiminimax para la lógica de Inteligencia Artificial (ADR-01), es necesario documentar las perspectivas del sistema para los distintos perfiles técnicos (desarrolladores, arquitectos y operaciones). Se requiere establecer cómo se estructura el código, cómo interactúan los componentes en tiempo de ejecución y cómo se distribuirá el software en la infraestructura de hardware, cumpliendo con los estándares de documentación del proyecto.
-
----
-
-## Decisión
-
-Se ha decidido implementar una adaptación del **Modelo de Vistas Arquitectónicas** para representar el sistema desde 4 perspectivas fundamentales mediante diagramas de Mermaid: Lógica, Procesos, Física y Despliegue.
-
-### ¿Por qué?
-
-Un solo diagrama C4 no es suficiente para explicar la complejidad del motor predictivo.
-* La **Vista Lógica** facilita el desarrollo al mapear las clases orientadas a objetos (Modelos).
-* La **Vista de Procesos** es crítica para entender el flujo asíncrono y la evaluación de árboles de decisión turno por turno.
-* Las **Vistas Física y de Despliegue** aseguran que los recursos del servidor web estén correctamente dimensionados para soportar los cálculos algorítmicos sin saturar el entorno.
-
-### Alternativas consideradas
-
-| Alternativa | Por qué la descarté |
-|-------------|---------------------|
-| **Mantener un único diagrama general (C4 Nivel 2)** | No ofrece el nivel de detalle necesario para programar la interacción exacta entre la IA y el Controlador, dejando ambigüedades en la implementación. |
-| **UML Completo (Casos de uso, Estados, Actividad)** | Generaría un exceso de documentación (*Over-engineering*) innecesario para el tamaño actual del simulador. |
-| **Documentación puramente textual** | Explicar el ciclo de eventos del Minimax sin diagramas de secuencia resulta confuso y propenso a errores de interpretación. |
-
----
-
-## Diagramas de las 4 Vistas
-
-### 1. Vista Lógica
+### 1. Vista Logica
 
 ```mermaid
 classDiagram
@@ -160,7 +76,7 @@ sequenceDiagram
     participant BatallaController
     participant MotorIAPredictiva
 
-    Jugador->>VistaWeb: Selecciona Atacar (Rayo)
+    Jugador->>VistaWeb: Selecciona Atacar Rayo
     VistaWeb->>BatallaController: POST /EjecutarTurno
     BatallaController->>MotorIAPredictiva: Enviar estado actual
     activate MotorIAPredictiva
@@ -168,34 +84,34 @@ sequenceDiagram
     MotorIAPredictiva-->>MotorIAPredictiva: Calcular dano y RNG
     MotorIAPredictiva-->>BatallaController: Retornar accion optima y resultado
     deactivate MotorIAPredictiva
-    BatallaController->>VistaWeb: Renderizar nuevo estado (ViewModel)
+    BatallaController->>VistaWeb: Renderizar nuevo estado ViewModel
     VistaWeb->>Jugador: Mostrar barras de HP actualizadas
 ```
 
-### 3. Vista Física
+### 3. Vista Fisica
 
 ```mermaid
 flowchart TD
-    subgraph Entorno_de_Usuario
-        PC[Computadora / Dispositivo Movil]
+    subgraph Entorno_Usuario
+        PC[Computadora o Dispositivo Movil]
     end
 
-    subgraph Centro_de_Datos
-        Server[Servidor Web / Host en la nube]
+    subgraph Centro_Datos
+        Server[Servidor Web en la nube]
     end
 
-    PC <-->|Internet / HTTPS| Server
+    PC <-->|Internet HTTPS| Server
 ```
 
 ### 4. Vista de Despliegue
 
 ```mermaid
 flowchart TD
-    subgraph Servidor_de_Aplicaciones
+    subgraph Servidor_Aplicaciones
         subgraph Entorno_NET_Core
             DLL[PokeOracle.dll]
-            Views[Vistas Razor - cshtml]
-            Static[Archivos Estaticos - CSS y JS]
+            Views[Vistas Razor cshtml]
+            Static[Archivos Estaticos CSS y JS]
         end
     end
 ```
@@ -204,16 +120,16 @@ flowchart TD
 
 ## Consecuencias
 
-# Lo que gano:
-* **Consecuencia técnica:** Al tener una Vista Lógica clara, la programación orientada a objetos en C# se agiliza enormemente, ya que sé exactamente qué atributos debe tener cada entidad (Pokemon, Movimiento) antes de escribir la primera línea de código.
-* **Consecuencia sobre el proceso:** Trabajar con la Vista de Procesos me sirve como guía paso a paso para programar el Controlador, evitando saltarme pasos en la validación de los turnos.
+**Lo que gano:**
+* **Consecuencia tecnica:** Al tener una Vista Logica clara, la programacion orientada a objetos en C# se agiliza enormemente, ya que se exactamente que atributos debe tener cada entidad antes de escribir la primera linea de codigo.
+* **Consecuencia sobre el proceso:** Trabajar con la Vista de Procesos sirve como guia paso a paso para programar el Controlador, evitando saltarse pasos en la validacion de los turnos.
 
-# Lo que pierdo o asumo:
-* **Limitación técnica:** Estos diagramas representan una "foto fija" del plan actual. Si decido cambiar radicalmente la arquitectura de la IA más adelante, tendré que invertir tiempo en redibujar e iterar estos diagramas.
-* **Deuda o riesgo:** La Vista Física y de Despliegue es actualmente muy sencilla. Si el simulador escala a miles de usuarios, tendré que actualizarla para incluir balanceadores de carga y bases de datos relacionales, lo que incrementará la complejidad del despliegue.
+**Lo que pierdo o asumo:**
+* **Limitacion tecnica:** Estos diagramas representan una foto fija del plan actual. Si se cambia radicalmente la arquitectura de la IA, habra que invertir tiempo en redibujar estos diagramas.
+* **Deuda o riesgo:** La Vista Fisica y de Despliegue es actualmente muy sencilla. Si el simulador escala a miles de usuarios, habra que actualizarla para incluir balanceadores de carga y bases de datos relacionales.
 
 ---
 
-## Declaración de uso de IA
-*Se declara el uso de herramientas de Inteligencia Artificial como asistentes de investigación y validación para el estructurado de código Mermaid y refinamiento técnico de los diagramas arquitectónicos de este documento, manteniendo en todo momento la autoría y dirección lógica del proyecto a cargo del desarrollador.*
-````
+## Declaracion de uso de IA
+
+*Se declara el uso de herramientas de Inteligencia Artificial como asistentes de investigacion y validacion para el estructurado de codigo Mermaid y refinamiento tecnico de los diagramas arquitectonicos de este documento, manteniendo en todo momento la autoria y direccion logica del proyecto a cargo del desarrollador.*
