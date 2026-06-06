@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PokeOracle")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+472dab7da9c7570fd32cac88674abcb6cf02a8b9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6cfd4d9a129bf641b0311294a5bb8a9ba731ac50")]
 [assembly: System.Reflection.AssemblyProductAttribute("PokeOracle")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PokeOracle")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

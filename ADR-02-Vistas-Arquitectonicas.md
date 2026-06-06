@@ -53,7 +53,7 @@ classDiagram
     class Pokemon {
         +String Nombre
         +int PuntosSalud
-        +List~Movimiento~ Ataques
+        +ListOfMovimiento Ataques
         +RecibirDano()
     }
     class Movimiento {
