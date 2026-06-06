@@ -112,3 +112,21 @@ flowchart TD
             Static[Archivos Estáticos\nCSS, JS, Imágenes Pokémon]
         end
     end
+
+    ## Consecuencias
+
+    ** Lo que gano:**
+
+    * **Consecuencia técnica:** Al tener una Vista Lógica clara, la programación orientada a objetos en C# se agiliza enormemente, ya que sé exactamente qué atributos debe tener cada entidad (Pokemon, Movimiento) antes de escribir la primera línea de código.
+    * **Consecuencia sobre el proceso:** Trabajar con la Vista de Procesos me sirve como guía paso a paso para programar el Controlador, evitando saltarme pasos en la validación de los turnos.
+
+    ** Lo que sacrifico o asumo:**
+
+    * **Limitación técnica:** Estos diagramas representan una "foto fija" del plan actual. Si decido cambiar radicalmente la arquitectura de la IA más adelante, tendré que invertir tiempo en redibujar e iterar estos diagramas.
+    * **Deuda o riesgo:** La Vista Física y de Despliegue es actualmente muy sencilla. Si el simulador escala a miles de usuarios, tendré que actualizarla para incluir balanceadores de carga y bases de datos relacionales, lo que incrementará la complejidad del despliegue.
+
+
+    ---
+
+## Declaración de uso de IA
+*Se declara el uso de herramientas de Inteligencia Artificial como asistentes de investigación y validación para el estructurado de código Mermaid y refinamiento técnico de los diagramas arquitectónicos de este documento, manteniendo en todo momento la autoría y dirección lógica del proyecto a cargo del desarrollador.*
