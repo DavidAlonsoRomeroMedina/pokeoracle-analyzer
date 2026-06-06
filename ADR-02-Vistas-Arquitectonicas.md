@@ -86,3 +86,29 @@ sequenceDiagram
     deactivate MotorIAPredictiva
     BatallaController->>Vista Web: Renderizar nuevo estado (ViewModel)
     Vista Web->>Jugador: Mostrar barras de HP actualizadas
+
+    ### 3. Vista Física
+*Representa la topología de la red y el hardware involucrado.*
+
+```mermaid
+flowchart TD
+    subgraph Entorno de Usuario
+        PC[Computadora / Dispositivo Móvil\nNavegador Web]
+    end
+
+    subgraph Centro de Datos / Nube
+        Server[Servidor Web / Host\nCPU multi-núcleo optimizado para cálculos lógicos]
+    end
+
+    PC <-->|Internet / HTTPS| Server
+
+    ### 4. Vista de Despliegue
+
+    flowchart TD
+    subgraph Servidor de Aplicaciones (Host)
+        subgraph Entorno de Ejecución .NET Core
+            DLL[PokeOracle.dll\nClases, Lógica y Motor IA]
+            Views[Archivos .cshtml\nVistas Razor]
+            Static[Archivos Estáticos\nCSS, JS, Imágenes Pokémon]
+        end
+    end
