@@ -62,3 +62,20 @@ flowchart LR
     CapaCliente -- "1. Envia datos del turno ocurrido" --> CapaServidor
     CapaServidor -- "2. Retorna vista renderizada\ncon la siguiente prediccion" --> CapaCliente
 ```
+
+---
+
+## Consecuencias
+
+**Lo que gano:**
+* **Consecuencia técnica Rendimiento fluido:** Al delegar todo el procesamiento al servidor, la herramienta funcionará rapidísimo sin importar si el usuario abre la página en una PC de escritorio de gama alta o en un teléfono celular antiguo, ya que el navegador web casi no consume RAM.
+* **Consecuencia sobre el proceso:** Simplifica la fase de diseño front-end. Al decidir que la interfaz sea puramente funcional y minimalista, el esfuerzo de desarrollo se concentrará casi por completo en perfeccionar la fiabilidad matemática del algoritmo.
+
+**Lo que sacrifico o asumo:**
+* **Limitación técnica:** Dependencia total de la conexión a internet. Dado que el navegador no sabe calcular nada, si el usuario pierde la conexión en medio de un Randomlocke, no podrá avanzar al siguiente turno porque el cliente no puede predecir por sí solo.
+* **Deuda o riesgo:** Gestión de sesiones. Dado que HTTP no tiene memoria por defecto, tendré que programar un sistema robusto mediante cookies, Session State o bases de datos temporales para que el servidor recuerde los puntos de salud de ambos equipos cada vez que el jugador hace clic en siguiente turno.
+
+---
+
+## Declaración de uso de IA
+*Se declara el uso de herramientas de Inteligencia Artificial como apoyo en la redacción técnica y la generación de la sintaxis del diagrama Mermaid para estructurar este documento, manteniendo la ideación del flujo de turnos, el diseño minimalista de la interfaz y las decisiones arquitectónicas bajo la autoría del desarrollador principal.*
