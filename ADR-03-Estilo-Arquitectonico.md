@@ -33,3 +33,32 @@ Todo el estado del combate y las decisiones algorítmicas se delegan al **Servid
 | **Single Page Application SPA, React o Angular** | Añadiría un peso y complejidad innecesarios de JavaScript masivo en el navegador para una interfaz que está diseñada intencionalmente para ser minimalista, estática y enfocada puramente en el ingreso de datos por turnos. |
 | **Arquitectura Serverless Funciones como servicio** | El flujo del simulador requiere mantener un estado continuo del combate. Las funciones Serverless nacen y mueren, lo que haría muy complejo mantener la memoria de la batalla turno tras turno. |
 | **Arquitectura Peer-to-Peer P2P** | PokeOracle es una herramienta de asistencia individual para un solo jugador. No hay necesidad de descentralizar datos ni conectar a múltiples usuarios entre sí. |
+
+
+---
+
+## Diagrama del Estilo Arquitectónico Aplicado
+
+El siguiente diagrama ilustra la separación de cargas entre el navegador del usuario y el servidor central, demostrando el flujo del ciclo de turnos que alimenta a la IA.
+
+```mermaid
+flowchart LR
+    subgraph CapaCliente ["Cliente Ligero Navegador Web"]
+        UI["Interfaz Minimalista\nFormularios paso a paso"]
+        Display["Muestra:\n1. Setup de equipos\n2. Interfaz de recoleccion, Criticos, fallos\n3. Jugada optima sugerida"]
+        UI --- Display
+    end
+
+    subgraph CapaServidor ["Servidor Pesado ASP.NET Core MVC"]
+        Controlador["Controlador de Flujo\nOrquesta la batalla"]
+        Memoria["Gestor de Estado\nRegistra PS, debilitaciones y\nmovimientos revelados"]
+        IA["Motor IA Expectiminimax\nCalcula el riesgo matematico\nde todas las opciones"]
+        
+        Controlador --> Memoria
+        Memoria --> IA
+        IA --> Controlador
+    end
+
+    CapaCliente -- "1. Envia datos del turno ocurrido" --> CapaServidor
+    CapaServidor -- "2. Retorna vista renderizada\ncon la siguiente prediccion" --> CapaCliente
+```
