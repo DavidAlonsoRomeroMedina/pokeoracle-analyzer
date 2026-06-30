@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="PokeOracle.Application/PokeOracle.Application.csproj" />
+  <Project Path="PokeOracle.Domain/PokeOracle.Domain.csproj" />
+  <Project Path="PokeOracle.Infrastructure/PokeOracle.Infrastructure.csproj" />
+  <Project Path="PokeOracle.WebApi/PokeOracle.WebApi.csproj" />
+</Solution>
