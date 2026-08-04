@@ -1,0 +1,17 @@
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Infrastructure.deps.json
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Infrastructure.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Infrastructure.pdb
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Application.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Domain.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Domain.pdb
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\bin\Debug\net10.0\PokeOracle.Application.pdb
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.csproj.AssemblyReference.cache
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.AssemblyInfoInputs.cache
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.AssemblyInfo.cs
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.csproj.CoreCompileInputs.cache
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOrac.DE01590E.Up2Date
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\refint\PokeOracle.Infrastructure.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\PokeOracle.Infrastructure.pdb
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Infrastructure\obj\Debug\net10.0\ref\PokeOracle.Infrastructure.dll

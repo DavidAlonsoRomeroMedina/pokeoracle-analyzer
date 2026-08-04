@@ -1,0 +1,11 @@
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\bin\Debug\net10.0\PokeOracle.Domain.deps.json
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\bin\Debug\net10.0\PokeOracle.Domain.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\bin\Debug\net10.0\PokeOracle.Domain.pdb
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\PokeOracle.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\PokeOracle.Domain.AssemblyInfoInputs.cache
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\PokeOracle.Domain.AssemblyInfo.cs
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\PokeOracle.Domain.csproj.CoreCompileInputs.cache
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\PokeOracle.Domain.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\refint\PokeOracle.Domain.dll
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\PokeOracle.Domain.pdb
+C:\Users\david\OneDrive\Escritorio\Pokeoracle-Madre\PokeOracle-Backend\PokeOracle.Domain\obj\Debug\net10.0\ref\PokeOracle.Domain.dll

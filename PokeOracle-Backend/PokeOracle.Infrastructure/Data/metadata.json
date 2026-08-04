@@ -1,6 +1,15 @@
+<<<<<<< HEAD
 {
   "name": "PokeOracle Assistant",
   "description": "AI-powered Pokemon Randomlocke Battle Assistant and simulator based on C# .NET 8 Clean Architecture",
   "requestFramePermissions": [],
   "majorCapabilities": [ "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API" ]
 }
+=======
+{
+  "name": "PokeOracle Assistant",
+  "description": "AI-powered Pokemon Randomlocke Battle Assistant and simulator based on C# .NET 8 Clean Architecture",
+  "requestFramePermissions": [],
+  "majorCapabilities": [ "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API" ]
+}
+>>>>>>> 063c35bd5ca941119c2db745bf84c16baf9ff108

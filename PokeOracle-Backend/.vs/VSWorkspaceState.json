@@ -1,0 +1,10 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\PokeOracle.Infrastructure",
+    "\\PokeOracle.Infrastructure\\Data",
+    "\\PokeOracle.WebApi"
+  ],
+  "SelectedNode": "\\PokeOracle.Infrastructure\\Data\\moves_data.json",
+  "PreviewInSolutionExplorer": false
+}

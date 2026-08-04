@@ -1,0 +1,36 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\david\\OneDrive\\Escritorio\\Pokeoracle-Madre\\PokeOracle-Backend\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{F6E003CB-D7E6-1810-6688-E8C2FDE97924}|PokeOracle.WebApi\\PokeOracle.WebApi.csproj|c:\\users\\david\\onedrive\\escritorio\\pokeoracle-madre\\pokeoracle-backend\\pokeoracle.webapi\\pokeoracle.webapi.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|",
+      "RelativeMoniker": "D:0:0:{F6E003CB-D7E6-1810-6688-E8C2FDE97924}|PokeOracle.WebApi\\PokeOracle.WebApi.csproj|solutionrelative:pokeoracle.webapi\\pokeoracle.webapi.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 0,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "PokeOracle.WebApi",
+              "DocumentMoniker": "C:\\Users\\david\\OneDrive\\Escritorio\\Pokeoracle-Madre\\PokeOracle-Backend\\PokeOracle.WebApi\\PokeOracle.WebApi.csproj",
+              "RelativeDocumentMoniker": "PokeOracle.WebApi\\PokeOracle.WebApi.csproj",
+              "ToolTip": "C:\\Users\\david\\OneDrive\\Escritorio\\Pokeoracle-Madre\\PokeOracle-Backend\\PokeOracle.WebApi\\PokeOracle.WebApi.csproj",
+              "RelativeToolTip": "PokeOracle.WebApi\\PokeOracle.WebApi.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-06-30T14:17:17.977Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
