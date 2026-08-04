@@ -11,6 +11,7 @@ import {
 } from './types';
 import { csharpCodebase, CSharpFile } from './csharpCode';
 import { PokemonSprite } from './PokemonSprite';
+import { PokemonBackground } from './PokemonBackground';
 import {
   Sparkles,
   Play,
@@ -436,120 +437,126 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#fcfcfc] text-slate-900 font-sans overflow-hidden">
-      
+    <div className="relative flex flex-col h-screen w-full text-white/70 font-sans overflow-hidden">
+      <PokemonBackground />
+
       {/* Top Header */}
-      <header className="flex items-center justify-between px-8 py-4 border-b border-gray-100 bg-white shrink-0">
+      <header className="relative z-20 flex items-center justify-between px-5 md:px-8 py-4 border-b border-white/10 bg-[#0a0e17]/70 backdrop-blur-xl shrink-0">
         <div className="flex items-center gap-4">
-          <div className="w-8 h-8 bg-slate-900 text-white rounded-none flex items-center justify-center font-bold text-xs uppercase tracking-tighter">PO</div>
-          <h1 className="text-sm font-bold uppercase tracking-widest text-slate-900">
-            PokeOracle Studio <span className="text-gray-300 font-normal">| Randomlocke Assistant</span>
-          </h1>
+          <div className="w-11 h-11 bg-gradient-to-br from-rose-500 to-orange-400 text-white rounded-2xl flex items-center justify-center font-display font-bold text-sm shadow-lg shadow-rose-500/30 animate-rise">
+            PO
+          </div>
+          <div>
+            <h1 className="text-base md:text-lg font-display font-bold tracking-wide text-white leading-none">
+              PokeOracle
+            </h1>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-white/45 mt-1">Randomlocke · Kanto Deck</p>
+          </div>
         </div>
-        
-        <div className="flex items-center gap-6">
-          <nav className="flex gap-6 text-[10px] font-bold uppercase tracking-widest">
-            <button
-              onClick={() => setActiveTab('simulator')}
-              className={`pb-1 transition-all ${
-                activeTab === 'simulator'
-                  ? 'text-black border-b-2 border-black font-extrabold'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              Simulador
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab('codebase');
-                const domainFirst = csharpCodebase.find(f => f.project === 'PokeOracle.Domain');
-                if (domainFirst) setSelectedFile(domainFirst);
-              }}
-              className={`pb-1 transition-all ${
-                activeTab === 'codebase'
-                  ? 'text-black border-b-2 border-black font-extrabold'
-                  : 'text-gray-400 hover:text-gray-600'
-              }`}
-            >
-              Código Limpio C#
-            </button>
-          </nav>
-        </div>
+
+        <nav className="flex items-center gap-2 p-1 rounded-2xl bg-white/5 border border-white/10">
+          <button
+            onClick={() => setActiveTab('simulator')}
+            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'simulator'
+                ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25'
+                : 'text-white/50 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            Simulador
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab('codebase');
+              const domainFirst = csharpCodebase.find(f => f.project === 'PokeOracle.Domain');
+              if (domainFirst) setSelectedFile(domainFirst);
+            }}
+            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
+              activeTab === 'codebase'
+                ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25'
+                : 'text-white/50 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            Código C#
+          </button>
+        </nav>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 flex overflow-hidden">
         {activeTab === 'simulator' ? (
           <>
-            {/* Quick Status Bar */}
-            <aside className="w-64 border-r border-gray-100 p-6 flex flex-col justify-between shrink-0 hidden lg:flex bg-white overflow-y-auto">
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1.5 block font-bold">Estado</label>
-                  <div className="flex items-center gap-2 text-xs font-semibold">
-                    <span className={`w-2 h-2 rounded-full ${sessionId ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400 animate-pulse'}`}></span>
-                    <span className="text-slate-700">{sessionId ? 'Sesión Iniciada' : 'Configurando Equipos'}</span>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-4 space-y-4">
+            {/* Side deck — estilo dashboard */}
+            <aside className="relative z-10 w-72 p-4 flex flex-col gap-4 shrink-0 hidden lg:flex overflow-y-auto">
+              <div className="glass-panel p-4 space-y-4 animate-rise">
+                <div className="flex items-center justify-between">
                   <div>
-                    <label className="text-[9px] uppercase tracking-widest text-gray-400 block font-bold">Heurística de Combate</label>
-                    <p className="text-[11px] text-slate-500 font-mono mt-1">
-                      Expectiminimax (Depth 3)<br />
-                      Foco: Daño Óptimo & KO
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Estado</p>
+                    <p className="text-sm font-semibold text-white mt-1">
+                      {sessionId ? 'Sesión activa' : 'Armando equipos'}
                     </p>
                   </div>
-                  <div>
-                    <label className="text-[9px] uppercase tracking-widest text-gray-400 block font-bold">Base de Datos</label>
-                    <p className="text-[11px] text-slate-500 font-mono mt-1">
-                      EF Core In-Memory<br />
-                      Catálogo Dinámico Cargado
-                    </p>
-                  </div>
+                  <span className={`w-3 h-3 rounded-full ${sessionId ? 'bg-emerald-400 animate-pulse' : 'bg-amber-300 animate-pulse'}`} />
                 </div>
 
-                {sessionId && (
-                  <div className="border-t border-gray-100 pt-4 space-y-2">
-                    <label className="text-[9px] uppercase tracking-widest text-gray-400 block font-bold">Tu Plantel Vivo</label>
-                    <div className="grid grid-cols-6 gap-1.5 mt-2">
-                      {playerParty.map((p, i) => (
-                        <div
-                          key={i}
-                          title={`${p.name} (${p.hp}/${p.maxHp} HP)`}
-                          className={`h-8 rounded-none flex items-center justify-center ${
-                            p.hp <= 0 ? 'bg-red-50' : i === activePlayerIdx ? 'bg-black' : 'bg-gray-100'
-                          }`}
-                        >
-                          <PokemonSprite name={p.name} src={spriteFor(p.name)} size="xs" fainted={p.hp <= 0} />
-                        </div>
-                      ))}
-                    </div>
+                <div className="grid grid-cols-1 gap-2">
+                  <button type="button" className="btn-side flex items-center gap-2 px-3 py-2.5 bg-emerald-500/90 text-white text-xs">
+                    <Sliders className="w-4 h-4" /> Configuración
+                  </button>
+                  <button type="button" onClick={handleResetSession} className="btn-side flex items-center gap-2 px-3 py-2.5 bg-sky-500/90 text-white text-xs">
+                    <RotateCcw className="w-4 h-4" /> Reiniciar
+                  </button>
+                  <div className="btn-side flex items-center gap-2 px-3 py-2.5 bg-white/10 text-white/80 text-xs">
+                    <BookOpen className="w-4 h-4" /> ES · Español
                   </div>
-                )}
+                </div>
               </div>
 
-              <div className="text-[9px] text-gray-400 font-mono leading-relaxed uppercase border-t border-gray-100 pt-4">
-                PokeOracle Client v2.0<br />
-                Clean Minimalism Theme
+              <div className="glass-panel p-4 space-y-3 animate-rise" style={{ animationDelay: '0.08s' }}>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Tu plantel</p>
+                <div className="grid grid-cols-3 gap-2">
+                  {playerParty.map((p, i) => (
+                    <div
+                      key={i}
+                      title={`${p.name} (${p.hp}/${p.maxHp} HP)`}
+                      className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
+                        p.hp <= 0
+                          ? 'bg-red-500/15 border-red-400/30'
+                          : i === activePlayerIdx
+                            ? 'bg-rose-500/25 border-rose-300/50 shadow-lg shadow-rose-500/20'
+                            : 'bg-white/5 border-white/10'
+                      }`}
+                    >
+                      <PokemonSprite name={p.name} src={spriteFor(p.name)} size="sm" fainted={p.hp <= 0} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-panel p-4 space-y-2 animate-rise" style={{ animationDelay: '0.14s' }}>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Motor</p>
+                <p className="text-[11px] text-white/60 leading-relaxed">
+                  Expectiminimax · profundidad 3<br />
+                  Catálogo Gen 1 con sprites vivos
+                </p>
               </div>
             </aside>
 
             {/* Stage Area */}
-            <section className="flex-1 p-6 md:p-8 flex flex-col overflow-y-auto bg-white relative">
+            <section className="relative z-10 flex-1 p-5 md:p-8 flex flex-col overflow-y-auto bg-transparent">
               
               {/* Step Flow indicator */}
-              <div className="flex justify-between items-center pb-3 border-b border-gray-100 mb-6 shrink-0">
+              <div className="flex justify-between items-center pb-3 border-b border-white/10 mb-6 shrink-0">
                 <div className="flex gap-6 text-[10px] font-bold uppercase tracking-widest">
-                  <span className={currentStep === 1 ? 'text-black border-b border-black pb-3' : 'text-gray-300'}>01 Setup Dinámico</span>
-                  <span className={currentStep === 2 ? 'text-black border-b border-black pb-3' : 'text-gray-300'}>02 Salida (Lead)</span>
-                  <span className={currentStep === 3 ? 'text-black border-b border-black pb-3' : 'text-gray-300'}>03 Simulación Activa</span>
+                  <span className={currentStep === 1 ? 'text-white border-b border-rose-400 pb-3' : 'text-white/30'}>01 Setup Dinámico</span>
+                  <span className={currentStep === 2 ? 'text-white border-b border-rose-400 pb-3' : 'text-white/30'}>02 Salida (Lead)</span>
+                  <span className={currentStep === 3 ? 'text-white border-b border-rose-400 pb-3' : 'text-white/30'}>03 Simulación Activa</span>
                 </div>
 
                 {sessionId && (
                   <button
                     onClick={handleResetSession}
-                    className="text-red-500 hover:text-red-700 flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider"
+                    className="text-rose-300 hover:text-rose-200 flex items-center gap-1 font-bold text-[10px] uppercase tracking-wider"
                   >
                     <RotateCcw className="w-3 h-3" /> Reconfigurar
                   </button>
@@ -561,9 +568,9 @@ export default function App() {
                 <div className="space-y-6 flex-1 flex flex-col justify-between">
                   <div className="space-y-6">
                     <div>
-                      <div className="inline-block px-2.5 py-1 bg-black text-white text-[9px] font-mono uppercase tracking-widest mb-3">CONSTRUCCIÓN SIN LIMITACIONES</div>
-                      <h2 className="text-3xl font-light tracking-tight text-slate-900 leading-none mb-2">Editor de Estadísticas Reales y Atributos</h2>
-                      <p className="text-slate-500 text-xs italic max-w-xl">
+                      <div className="inline-block px-3 py-1.5 rounded-full bg-rose-500/20 border border-rose-300/30 text-rose-100 text-[9px] font-mono uppercase tracking-widest mb-3">CONSTRUCCIÓN SIN LIMITACIONES</div>
+                      <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-white leading-none mb-2">Editor de Estadísticas Reales y Atributos</h2>
+                      <p className="text-white/55 text-xs italic max-w-xl">
                         PROHIBIDO hardcodear equipos. Selecciona Pokémon de Kanto, asigna estadísticas reales (con EVs/IVs ya calculados de tu emulador), define Habilidad de Gen 3, Objeto Equipado y sus 4 ataques correspondientes.
                       </p>
                     </div>
@@ -571,16 +578,16 @@ export default function App() {
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                       {/* Left Side: Slots selection */}
                       <div className="xl:col-span-5 space-y-4">
-                        <div className="flex bg-gray-100 p-1 rounded-none text-[10px] font-bold uppercase tracking-wider">
+                        <div className="flex bg-black/30 p-1 rounded-2xl border border-white/10 text-[10px] font-bold uppercase tracking-wider">
                           <button
                             onClick={() => { setEditingParty('player'); setSelectedSlotIndex(0); }}
-                            className={`flex-1 py-1.5 text-center ${editingParty === 'player' ? 'bg-white text-black shadow-sm' : 'text-gray-500'}`}
+                            className={`flex-1 py-1.5 text-center ${editingParty === 'player' ? 'bg-white/15 text-white shadow-sm' : 'text-white/50'}`}
                           >
                             Tu Equipo
                           </button>
                           <button
                             onClick={() => { setEditingParty('rival'); setSelectedSlotIndex(0); }}
-                            className={`flex-1 py-1.5 text-center ${editingParty === 'rival' ? 'bg-white text-black shadow-sm' : 'text-gray-500'}`}
+                            className={`flex-1 py-1.5 text-center ${editingParty === 'rival' ? 'bg-white/15 text-white shadow-sm' : 'text-white/50'}`}
                           >
                             Equipo Rival
                           </button>
@@ -593,19 +600,19 @@ export default function App() {
                               onClick={() => setSelectedSlotIndex(idx)}
                               className={`p-3 text-left border flex justify-between items-center transition-all ${
                                 selectedSlotIndex === idx
-                                  ? 'bg-black text-white border-black'
-                                  : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-slate-800'
+                                  ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white border-transparent shadow-lg shadow-rose-500/25'
+                                  : 'bg-white/5 hover:bg-white/10 border-white/15 text-white/90'
                               }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
                                 <PokemonSprite name={pkm.name} src={spriteFor(pkm.name)} size="sm" />
                                 <div className="truncate">
-                                  <span className="text-[10px] font-mono mr-2 text-gray-400">SLOT {idx + 1}</span>
+                                  <span className="text-[10px] font-mono mr-2 text-white/40">SLOT {idx + 1}</span>
                                   <span className="font-bold text-xs uppercase tracking-tight">{pkm.name || 'Seleccionar...'}</span>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1.5 font-mono text-[9px]">
-                                <span className="text-[9px] uppercase text-gray-400 truncate max-w-[80px]">{(pkm as any).ability}</span>
+                                <span className="text-[9px] uppercase text-white/40 truncate max-w-[80px]">{(pkm as any).ability}</span>
                                 <ChevronRight className="w-3 h-3 opacity-60" />
                               </div>
                             </button>
@@ -614,29 +621,29 @@ export default function App() {
                       </div>
 
                       {/* Right Side: Specific stats and details editor */}
-                      <div className="xl:col-span-7 bg-gray-50 border border-gray-100 p-5 space-y-4">
+                      <div className="xl:col-span-7 glass-panel p-5 space-y-4">
                         {currentEditingPokemon ? (
                           <>
-                            <div className="flex justify-between items-center pb-2 border-b border-gray-200">
-                              <span className="text-[10px] font-mono text-gray-400 uppercase font-bold">Editor Slot {selectedSlotIndex + 1} ({editingParty === 'player' ? 'Jugador' : 'Rival'})</span>
+                            <div className="flex justify-between items-center pb-2 border-b border-white/10">
+                              <span className="text-[10px] font-mono text-white/40 uppercase font-bold">Editor Slot {selectedSlotIndex + 1} ({editingParty === 'player' ? 'Jugador' : 'Rival'})</span>
                               <div className="flex gap-1.5">
                                 {currentEditingPokemon.types.map((t, i) => (
-                                  <span key={i} className="text-[8px] px-1.5 py-0.5 bg-gray-200 text-slate-700 font-bold uppercase">{t}</span>
+                                  <span key={i} className="text-[8px] px-1.5 py-0.5 bg-white/15 text-white/80 font-bold uppercase">{t}</span>
                                 ))}
                               </div>
                             </div>
 
                             {/* Dropdown 151 Kanto Species */}
                             <div className="space-y-1">
-                              <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Especie Pokémon (151 Kanto)</label>
+                              <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Especie Pokémon (151 Kanto)</label>
                               <div className="flex items-center gap-3">
-                                <div className="bg-white border border-gray-200 p-1 shrink-0">
+                                <div className="bg-black/30 border border-white/15 p-1 shrink-0">
                                   <PokemonSprite name={currentEditingPokemon.name} src={spriteFor(currentEditingPokemon.name)} size="lg" />
                                 </div>
                                 <select
                                   value={currentEditingPokemon.name}
                                   onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'name', e.target.value)}
-                                  className="w-full p-2.5 bg-white border border-gray-200 text-xs font-bold uppercase tracking-wider"
+                                  className="w-full p-2.5 bg-black/30 border border-white/15 text-xs font-bold uppercase tracking-wider"
                                 >
                                   {pokemonCatalog.map((p) => (
                                     <option key={p.name} value={p.name}>
@@ -650,12 +657,12 @@ export default function App() {
                             {/* IV/EV Real Stats Input */}
                             <div className="space-y-1">
                               <div className="flex justify-between items-baseline">
-                                <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Estadísticas Reales del Juego</label>
+                                <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Estadísticas Reales del Juego</label>
                                 <span className="text-[8px] text-amber-600 font-semibold font-mono uppercase">¡Ingresar stats reales, no base!</span>
                               </div>
                               <div className="grid grid-cols-6 gap-2 font-mono text-xs">
                                 <div>
-                                  <div className="text-[8px] text-slate-400 uppercase text-center font-bold mb-1">HP Real</div>
+                                  <div className="text-[8px] text-white/45 uppercase text-center font-bold mb-1">HP Real</div>
                                   <input
                                     type="number"
                                     value={currentEditingPokemon.maxHp}
@@ -664,52 +671,52 @@ export default function App() {
                                       handleUpdatePokemonField(editingParty, selectedSlotIndex, 'maxHp', val);
                                       handleUpdatePokemonField(editingParty, selectedSlotIndex, 'hp', val);
                                     }}
-                                    className="w-full p-1.5 border border-gray-200 bg-white text-center text-xs font-bold"
+                                    className="w-full p-1.5 border border-white/15 bg-white/10 text-center text-xs font-bold"
                                   />
                                 </div>
                                 <div>
-                                  <div className="text-[8px] text-slate-400 uppercase text-center font-bold mb-1">ATK</div>
+                                  <div className="text-[8px] text-white/45 uppercase text-center font-bold mb-1">ATK</div>
                                   <input
                                     type="number"
                                     value={currentEditingPokemon.attack}
                                     onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'attack', Number(e.target.value))}
-                                    className="w-full p-1.5 border border-gray-200 bg-white text-center text-xs font-bold"
+                                    className="w-full p-1.5 border border-white/15 bg-white/10 text-center text-xs font-bold"
                                   />
                                 </div>
                                 <div>
-                                  <div className="text-[8px] text-slate-400 uppercase text-center font-bold mb-1">DEF</div>
+                                  <div className="text-[8px] text-white/45 uppercase text-center font-bold mb-1">DEF</div>
                                   <input
                                     type="number"
                                     value={currentEditingPokemon.defense}
                                     onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'defense', Number(e.target.value))}
-                                    className="w-full p-1.5 border border-gray-200 bg-white text-center text-xs font-bold"
+                                    className="w-full p-1.5 border border-white/15 bg-white/10 text-center text-xs font-bold"
                                   />
                                 </div>
                                 <div>
-                                  <div className="text-[8px] text-slate-400 uppercase text-center font-bold mb-1">SPA</div>
+                                  <div className="text-[8px] text-white/45 uppercase text-center font-bold mb-1">SPA</div>
                                   <input
                                     type="number"
                                     value={currentEditingPokemon.spAttack}
                                     onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'spAttack', Number(e.target.value))}
-                                    className="w-full p-1.5 border border-gray-200 bg-white text-center text-xs font-bold"
+                                    className="w-full p-1.5 border border-white/15 bg-white/10 text-center text-xs font-bold"
                                   />
                                 </div>
                                 <div>
-                                  <div className="text-[8px] text-slate-400 uppercase text-center font-bold mb-1">SPD</div>
+                                  <div className="text-[8px] text-white/45 uppercase text-center font-bold mb-1">SPD</div>
                                   <input
                                     type="number"
                                     value={currentEditingPokemon.spDefense}
                                     onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'spDefense', Number(e.target.value))}
-                                    className="w-full p-1.5 border border-gray-200 bg-white text-center text-xs font-bold"
+                                    className="w-full p-1.5 border border-white/15 bg-white/10 text-center text-xs font-bold"
                                   />
                                 </div>
                                 <div>
-                                  <div className="text-[8px] text-slate-400 uppercase text-center font-bold mb-1">SPE</div>
+                                  <div className="text-[8px] text-white/45 uppercase text-center font-bold mb-1">SPE</div>
                                   <input
                                     type="number"
                                     value={currentEditingPokemon.speed}
                                     onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'speed', Number(e.target.value))}
-                                    className="w-full p-1.5 border border-gray-200 bg-white text-center text-xs font-bold"
+                                    className="w-full p-1.5 border border-white/15 bg-white/10 text-center text-xs font-bold"
                                   />
                                 </div>
                               </div>
@@ -718,11 +725,11 @@ export default function App() {
                             {/* Abilities and Held Items selects */}
                             <div className="grid grid-cols-2 gap-3">
                               <div className="space-y-1">
-                                <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Habilidad Gen 3 (76 disponibles)</label>
+                                <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Habilidad Gen 3 (76 disponibles)</label>
                                 <select
                                   value={(currentEditingPokemon as any).ability || 'None'}
                                   onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'ability', e.target.value)}
-                                  className="w-full p-2 bg-white border border-gray-200 text-xs font-semibold"
+                                  className="w-full p-2 bg-black/30 border border-white/15 text-xs font-semibold"
                                 >
                                   {abilitiesCatalog.map((abil) => (
                                     <option key={abil} value={abil}>{abil}</option>
@@ -731,11 +738,11 @@ export default function App() {
                               </div>
 
                               <div className="space-y-1">
-                                <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Objeto Equipado (Held Item)</label>
+                                <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Objeto Equipado (Held Item)</label>
                                 <select
                                   value={(currentEditingPokemon as any).heldItem || 'None'}
                                   onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'heldItem', e.target.value)}
-                                  className="w-full p-2 bg-white border border-gray-200 text-xs font-semibold"
+                                  className="w-full p-2 bg-black/30 border border-white/15 text-xs font-semibold"
                                 >
                                   {itemsCatalog.map((it) => (
                                     <option key={it} value={it}>{it}</option>
@@ -745,8 +752,8 @@ export default function App() {
                             </div>
 
                             {/* Moves edit lists */}
-                            <div className="space-y-2 pt-2 border-t border-gray-200">
-                              <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Set de Ataques (4 Movimientos)</label>
+                            <div className="space-y-2 pt-2 border-t border-white/10">
+                              <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Set de Ataques (4 Movimientos)</label>
                               <div className="grid grid-cols-2 gap-2">
                                 {[0, 1, 2, 3].map((moveIdx) => {
                                   const currentMoveName = currentEditingPokemon.moves[moveIdx]?.name || '';
@@ -755,7 +762,7 @@ export default function App() {
                                       key={moveIdx}
                                       value={currentMoveName}
                                       onChange={(e) => handleUpdateMove(editingParty, selectedSlotIndex, moveIdx, e.target.value)}
-                                      className="w-full p-2 bg-white border border-gray-200 text-[11px] font-semibold"
+                                      className="w-full p-2 bg-black/30 border border-white/15 text-[11px] font-semibold"
                                     >
                                       <option value="">-- Vacío --</option>
                                       {movesCatalog.map((mv) => (
@@ -768,17 +775,17 @@ export default function App() {
                             </div>
                           </>
                         ) : (
-                          <div className="text-center py-10 text-xs text-gray-400 font-mono italic">Selecciona un slot para comenzar a configurar su composición.</div>
+                          <div className="text-center py-10 text-xs text-white/40 font-mono italic">Selecciona un slot para comenzar a configurar su composición.</div>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-100 mt-auto">
+                  <div className="pt-4 border-t border-white/10 mt-auto">
                     <button
                       onClick={handleSetupBattle}
                       disabled={isCalculating}
-                      className="w-full py-4.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-[0.3em] transition-all"
+                      className="btn-accent w-full py-4 text-xs uppercase tracking-[0.25em]"
                     >
                       {isCalculating ? 'Procesando catálogo e inyectando persistencia...' : 'Registrar planteles y avanzar'}
                     </button>
@@ -791,32 +798,32 @@ export default function App() {
                 <div className="space-y-6 flex-1 flex flex-col justify-between">
                   <div className="space-y-6">
                     <div>
-                      <div className="inline-block px-2.5 py-1 bg-black text-white text-[9px] font-mono uppercase tracking-widest mb-3">CONSEJO DEL ASISTENTE</div>
-                      <h2 className="text-3xl font-light tracking-tight text-slate-900 leading-none mb-2">Predicción de Apertura de Combate (Lead)</h2>
-                      <p className="text-slate-500 text-xs italic">
+                      <div className="inline-block px-3 py-1.5 rounded-full bg-rose-500/20 border border-rose-300/30 text-rose-100 text-[9px] font-mono uppercase tracking-widest mb-3">CONSEJO DEL ASISTENTE</div>
+                      <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-white leading-none mb-2">Predicción de Apertura de Combate (Lead)</h2>
+                      <p className="text-white/55 text-xs italic">
                         El motor de la IA evaluó la composición del rival y predice el abridor óptimo para maximizar el Matchup Ratio.
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 p-6 rounded-none flex items-center gap-5 border border-slate-100">
-                      <div className="w-10 h-10 bg-slate-900 text-white rounded-full flex items-center justify-center font-bold">
+                    <div className="bg-slate-50 p-6 rounded-2xl flex items-center gap-5 border border-slate-100">
+                      <div className="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold">
                         <Sparkles className="w-5 h-5" />
                       </div>
                       <div>
-                        <span className="text-[9px] uppercase font-mono tracking-widest text-slate-400 block font-bold">Abridor Sugerido</span>
-                        <p className="text-xl font-bold tracking-tight text-slate-900 uppercase mt-0.5">{predictedLead}</p>
+                        <span className="text-[9px] uppercase font-mono tracking-widest text-white/45 block font-bold">Abridor Sugerido</span>
+                        <p className="text-xl font-bold tracking-tight text-white uppercase mt-0.5">{predictedLead}</p>
                       </div>
                     </div>
 
-                    <div className="pt-4 border-t border-gray-100 space-y-4">
-                      <h3 className="text-xs font-bold uppercase tracking-widest text-slate-800">Definir abridores del combate real</h3>
+                    <div className="pt-4 border-t border-white/10 space-y-4">
+                      <h3 className="text-xs font-bold uppercase tracking-widest text-white/90">Definir abridores del combate real</h3>
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Tu Pokémon Inicial</label>
+                          <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Tu Pokémon Inicial</label>
                           <select
                             value={selectedPlayerLead}
                             onChange={(e) => setSelectedPlayerLead(Number(e.target.value))}
-                            className="w-full p-2.5 bg-white border border-gray-200 text-xs font-semibold"
+                            className="w-full p-2.5 bg-black/30 border border-white/15 text-xs font-semibold"
                           >
                             {playerParty.map((p, i) => (
                               <option key={i} value={i}>{p.name} (HP: {p.hp}/{p.maxHp})</option>
@@ -825,11 +832,11 @@ export default function App() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Abridor Inicial Rival</label>
+                          <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Abridor Inicial Rival</label>
                           <select
                             value={selectedRivalLead}
                             onChange={(e) => setSelectedRivalLead(Number(e.target.value))}
-                            className="w-full p-2.5 bg-white border border-gray-200 text-xs font-semibold"
+                            className="w-full p-2.5 bg-black/30 border border-white/15 text-xs font-semibold"
                           >
                             {rivalParty.map((p, i) => (
                               <option key={i} value={i}>{p.name} (HP: {p.hp}/{p.maxHp})</option>
@@ -840,17 +847,17 @@ export default function App() {
                     </div>
                   </div>
 
-                  <div className="flex gap-4 pt-4 border-t border-gray-100 mt-auto">
+                  <div className="flex gap-4 pt-4 border-t border-white/10 mt-auto">
                     <button
                       onClick={() => setCurrentStep(1)}
-                      className="px-6 py-4.5 bg-gray-100 hover:bg-gray-200 text-slate-700 text-xs font-bold uppercase tracking-widest transition-all"
+                      className="px-6 py-4.5 bg-white/10 hover:bg-white/15 text-white/80 text-xs font-bold uppercase tracking-widest transition-all"
                     >
                       Atrás
                     </button>
                     <button
                       onClick={handleConfirmLead}
                       disabled={isCalculating}
-                      className="flex-1 py-4.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-widest transition-all"
+                      className="flex-1 py-4.5 btn-accent text-white text-xs font-bold uppercase tracking-widest transition-all"
                     >
                       Establecer Combate y Solicitar Sugerencia de Turno 1
                     </button>
@@ -865,7 +872,7 @@ export default function App() {
 
                     {/* INTERMEDIATE FAINT SWITCH OVERLAY (Free Switch Mandatory Mode) */}
                     {isSwitchRequired ? (
-                      <div className="bg-red-50 border-2 border-red-200 p-6 rounded-none space-y-4">
+                      <div className="bg-red-500/15 border-2 border-red-200 p-6 rounded-2xl space-y-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-red-600 text-white rounded-full flex items-center justify-center font-bold font-mono">!</div>
                           <div>
@@ -879,12 +886,12 @@ export default function App() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
                           {/* Player Free Switch Panel */}
                           {playerParty[activePlayerIdx]?.hp <= 0 ? (
-                            <div className="bg-white p-4 border border-red-100 space-y-3">
-                              <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">Tu Pokémon está debilitado. Elige Sustituto:</span>
+                            <div className="bg-white/10 p-4 border border-red-100 space-y-3">
+                              <span className="text-[10px] uppercase font-mono text-white/40 block font-bold">Tu Pokémon está debilitado. Elige Sustituto:</span>
                               <select
                                 value={freeSwitchChoice}
                                 onChange={(e) => setFreeSwitchChoice(Number(e.target.value))}
-                                className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-semibold"
+                                className="w-full p-2 glass-panel text-xs font-semibold"
                               >
                                 <option value="-1">-- Seleccionar Sustituto Sano --</option>
                                 {playerParty.map((p, idx) => (
@@ -896,25 +903,25 @@ export default function App() {
                               <button
                                 onClick={() => handleFreeSwitch(false)}
                                 disabled={freeSwitchChoice === -1 || isCalculating}
-                                className="w-full py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-slate-800 disabled:bg-gray-200 disabled:text-gray-400"
+                                className="w-full py-2 bg-rose-500 text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 disabled:bg-white/15 disabled:text-white/40"
                               >
                                 Confirmar Tu Reemplazo Libre
                               </button>
                             </div>
                           ) : (
-                            <div className="bg-gray-100 p-4 flex items-center justify-center text-[11px] font-mono text-slate-500 uppercase">
+                            <div className="bg-white/10 p-4 flex items-center justify-center text-[11px] font-mono text-white/55 uppercase">
                               Tu Pokémon activo ({playerParty[activePlayerIdx]?.name}) sigue en pie.
                             </div>
                           )}
 
                           {/* Rival Free Switch Panel */}
                           {rivalParty[activeRivalIdx]?.hp <= 0 ? (
-                            <div className="bg-white p-4 border border-red-100 space-y-3">
-                              <span className="text-[10px] uppercase font-mono text-gray-400 block font-bold">Rival debilitado. Elige qué Pokémon envió el rival:</span>
+                            <div className="bg-white/10 p-4 border border-red-100 space-y-3">
+                              <span className="text-[10px] uppercase font-mono text-white/40 block font-bold">Rival debilitado. Elige qué Pokémon envió el rival:</span>
                               <select
                                 value={rivalFreeSwitchChoice}
                                 onChange={(e) => setRivalFreeSwitchChoice(Number(e.target.value))}
-                                className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-semibold"
+                                className="w-full p-2 glass-panel text-xs font-semibold"
                               >
                                 <option value="-1">-- Seleccionar Nuevo Pokémon Rival --</option>
                                 {rivalParty.map((p, idx) => (
@@ -926,13 +933,13 @@ export default function App() {
                               <button
                                 onClick={() => handleFreeSwitch(true)}
                                 disabled={rivalFreeSwitchChoice === -1 || isCalculating}
-                                className="w-full py-2 bg-slate-900 text-white text-[10px] font-bold uppercase tracking-wider hover:bg-slate-800 disabled:bg-gray-200 disabled:text-gray-400"
+                                className="w-full py-2 bg-rose-500 text-white text-[10px] font-bold uppercase tracking-wider hover:brightness-110 disabled:bg-white/15 disabled:text-white/40"
                               >
                                 Confirmar Reemplazo Rival
                               </button>
                             </div>
                           ) : (
-                            <div className="bg-gray-100 p-4 flex items-center justify-center text-[11px] font-mono text-slate-500 uppercase">
+                            <div className="bg-white/10 p-4 flex items-center justify-center text-[11px] font-mono text-white/55 uppercase">
                               El rival activo ({rivalParty[activeRivalIdx]?.name}) sigue en pie.
                             </div>
                           )}
@@ -941,31 +948,31 @@ export default function App() {
                     ) : (
                       /* ORACLE SUGGESTION COMPONENT */
                       aiSuggestion && (
-                        <div className="bg-[#f3f4f6] p-5 border border-gray-200 relative">
+                        <div className="bg-[#f3f4f6] p-5 border border-white/15 relative">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-[9px] font-mono uppercase bg-slate-900 text-white px-2 py-0.5 tracking-wider font-bold">
+                            <span className="text-[9px] font-mono uppercase bg-rose-500 text-white px-2 py-0.5 tracking-wider font-bold">
                               PokeOracle Engine // Confianza: {aiSuggestion.confidence}%
                             </span>
                           </div>
 
-                          <h3 className="text-3xl font-light tracking-tight text-slate-900 mb-2">
+                          <h3 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-white mb-2">
                             Sugerencia: {aiSuggestion.recommendedAction === 'Move' ? (
-                              <>Usar <span className="font-extrabold italic text-black">{aiSuggestion.moveName}</span></>
+                              <>Usar <span className="font-extrabold italic text-white">{aiSuggestion.moveName}</span></>
                             ) : (
-                              <>Cambiar a <span className="font-extrabold italic text-black">{aiSuggestion.switchPokemonName}</span></>
+                              <>Cambiar a <span className="font-extrabold italic text-white">{aiSuggestion.switchPokemonName}</span></>
                             )}
                           </h3>
-                          <p className="text-xs text-slate-600 leading-relaxed max-w-3xl mb-4 italic">
+                          <p className="text-xs text-white/70 leading-relaxed max-w-3xl mb-4 italic">
                             {aiSuggestion.explanation}
                           </p>
 
                           {/* Expectiminimax pathways dropdown */}
-                          <div className="border-t border-gray-300 pt-3">
-                            <span className="text-[9px] uppercase tracking-wider text-slate-500 font-bold block mb-1.5">Árbol de Expectación de Daño (Simulación Depth 3)</span>
-                            <div className="bg-white p-3 max-h-[110px] overflow-y-auto space-y-1 font-mono text-[10px] text-slate-500 border border-gray-200">
+                          <div className="border-t border-white/20 pt-3">
+                            <span className="text-[9px] uppercase tracking-wider text-white/55 font-bold block mb-1.5">Árbol de Expectación de Daño (Simulación Depth 3)</span>
+                            <div className="bg-white/10 p-3 max-h-[110px] overflow-y-auto space-y-1 font-mono text-[10px] text-white/55 border border-white/15">
                               {aiSuggestion.simulatedPaths.map((p, i) => (
                                 <div key={i} className="flex gap-2">
-                                  <span className="text-slate-400 font-bold">[{i+1}]</span>
+                                  <span className="text-white/45 font-bold">[{i+1}]</span>
                                   <span>{p}</span>
                                 </div>
                               ))}
@@ -978,11 +985,11 @@ export default function App() {
                     {/* Active Pokémon status view cards */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
                       {/* Player status */}
-                      <div className="p-4 bg-gray-50 border border-gray-100 space-y-2">
-                        <div className="flex justify-between items-center text-[9px] uppercase tracking-widest text-slate-400 font-bold">
+                      <div className="p-4 glass-panel space-y-2">
+                        <div className="flex justify-between items-center text-[9px] uppercase tracking-widest text-white/45 font-bold">
                           <span>Tu Pokémon Activo</span>
                           {playerParty[activePlayerIdx]?.status !== 'None' && (
-                            <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 border border-yellow-200 text-[8px] font-bold uppercase">{playerParty[activePlayerIdx]?.status}</span>
+                            <span className="px-1.5 py-0.5 bg-amber-300/15 text-amber-200 border border-amber-300/30 text-[8px] font-bold uppercase">{playerParty[activePlayerIdx]?.status}</span>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
@@ -993,23 +1000,23 @@ export default function App() {
                             fainted={(playerParty[activePlayerIdx]?.hp ?? 0) <= 0}
                           />
                           <div className="flex justify-between items-baseline grow min-w-0">
-                            <h4 className="text-lg font-bold text-slate-900 uppercase tracking-tight truncate">{playerParty[activePlayerIdx]?.name}</h4>
-                            <span className="text-xs font-mono text-slate-500 shrink-0 ml-2">HP: {playerParty[activePlayerIdx]?.hp} / {playerParty[activePlayerIdx]?.maxHp}</span>
+                            <h4 className="text-lg font-bold text-white uppercase tracking-tight truncate">{playerParty[activePlayerIdx]?.name}</h4>
+                            <span className="text-xs font-mono text-white/55 shrink-0 ml-2">HP: {playerParty[activePlayerIdx]?.hp} / {playerParty[activePlayerIdx]?.maxHp}</span>
                           </div>
                         </div>
-                        <div className="w-full bg-gray-200 h-1">
+                        <div className="w-full bg-white/15 h-1">
                           <div
                             className={`h-full transition-all duration-300 ${
                               (playerParty[activePlayerIdx]?.hp / playerParty[activePlayerIdx]?.maxHp) > 0.5
-                                ? 'bg-emerald-500'
+                                ? 'bg-emerald-400'
                                 : (playerParty[activePlayerIdx]?.hp / playerParty[activePlayerIdx]?.maxHp) > 0.2
-                                ? 'bg-amber-500'
-                                : 'bg-rose-500'
+                                ? 'bg-amber-400'
+                                : 'bg-rose-400'
                             }`}
                             style={{ width: `${Math.max(0, (playerParty[activePlayerIdx]?.hp / playerParty[activePlayerIdx]?.maxHp) * 100)}%` }}
                           />
                         </div>
-                        <div className="flex justify-between text-[9px] font-mono text-gray-400">
+                        <div className="flex justify-between text-[9px] font-mono text-white/40">
                           <span>HAB: {(playerParty[activePlayerIdx] as any)?.ability || 'Ninguna'}</span>
                           <span>OBJ: {(playerParty[activePlayerIdx] as any)?.heldItem || 'Ninguno'}</span>
                           <span>SPE: {playerParty[activePlayerIdx]?.speed}</span>
@@ -1017,11 +1024,11 @@ export default function App() {
                       </div>
 
                       {/* Rival status */}
-                      <div className="p-4 bg-gray-50 border border-gray-100 space-y-2">
-                        <div className="flex justify-between items-center text-[9px] uppercase tracking-widest text-slate-400 font-bold">
+                      <div className="p-4 glass-panel space-y-2">
+                        <div className="flex justify-between items-center text-[9px] uppercase tracking-widest text-white/45 font-bold">
                           <span>Rival Activo</span>
                           {rivalParty[activeRivalIdx]?.status !== 'None' && (
-                            <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 border border-yellow-200 text-[8px] font-bold uppercase">{rivalParty[activeRivalIdx]?.status}</span>
+                            <span className="px-1.5 py-0.5 bg-amber-300/15 text-amber-200 border border-amber-300/30 text-[8px] font-bold uppercase">{rivalParty[activeRivalIdx]?.status}</span>
                           )}
                         </div>
                         <div className="flex items-center gap-3">
@@ -1032,23 +1039,23 @@ export default function App() {
                             fainted={(rivalParty[activeRivalIdx]?.hp ?? 0) <= 0}
                           />
                           <div className="flex justify-between items-baseline grow min-w-0">
-                            <h4 className="text-lg font-bold text-slate-900 uppercase tracking-tight truncate">{rivalParty[activeRivalIdx]?.name}</h4>
-                            <span className="text-xs font-mono text-slate-500 shrink-0 ml-2">HP: {rivalParty[activeRivalIdx]?.hp} / {rivalParty[activeRivalIdx]?.maxHp}</span>
+                            <h4 className="text-lg font-bold text-white uppercase tracking-tight truncate">{rivalParty[activeRivalIdx]?.name}</h4>
+                            <span className="text-xs font-mono text-white/55 shrink-0 ml-2">HP: {rivalParty[activeRivalIdx]?.hp} / {rivalParty[activeRivalIdx]?.maxHp}</span>
                           </div>
                         </div>
-                        <div className="w-full bg-gray-200 h-1">
+                        <div className="w-full bg-white/15 h-1">
                           <div
                             className={`h-full transition-all duration-300 ${
                               (rivalParty[activeRivalIdx]?.hp / rivalParty[activeRivalIdx]?.maxHp) > 0.5
-                                ? 'bg-emerald-500'
+                                ? 'bg-emerald-400'
                                 : (rivalParty[activeRivalIdx]?.hp / rivalParty[activeRivalIdx]?.maxHp) > 0.2
-                                ? 'bg-amber-500'
-                                : 'bg-rose-500'
+                                ? 'bg-amber-400'
+                                : 'bg-rose-400'
                             }`}
                             style={{ width: `${Math.max(0, (rivalParty[activeRivalIdx]?.hp / rivalParty[activeRivalIdx]?.maxHp) * 100)}%` }}
                           />
                         </div>
-                        <div className="flex justify-between text-[9px] font-mono text-gray-400">
+                        <div className="flex justify-between text-[9px] font-mono text-white/40">
                           <span>HAB: {(rivalParty[activeRivalIdx] as any)?.ability || 'Ninguna'}</span>
                           <span>OBJ: {(rivalParty[activeRivalIdx] as any)?.heldItem || 'Ninguno'}</span>
                           <span>SPE: {rivalParty[activeRivalIdx]?.speed}</span>
@@ -1061,14 +1068,14 @@ export default function App() {
                       
                       {/* Player Choice */}
                       <div className="space-y-4">
-                        <h4 className="text-[10px] font-bold uppercase tracking-wider border-b border-gray-100 pb-1.5 text-slate-800">Tu Acción Realizada</h4>
+                        <h4 className="text-[10px] font-bold uppercase tracking-wider border-b border-white/10 pb-1.5 text-white/90">Tu Acción Realizada</h4>
                         
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
                             onClick={() => setPlayerSwitchTo(-1)}
                             className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                              playerSwitchTo === -1 ? 'bg-black text-white border-black' : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                              playerSwitchTo === -1 ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white border-transparent shadow-lg shadow-rose-500/25' : 'bg-white/10 text-white/70 border-white/15 hover:bg-white/5'
                             }`}
                           >
                             Atacar
@@ -1080,7 +1087,7 @@ export default function App() {
                               setPlayerSwitchTo(cand >= 0 ? cand : 0);
                             }}
                             className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                              playerSwitchTo !== -1 ? 'bg-black text-white border-black' : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                              playerSwitchTo !== -1 ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white border-transparent shadow-lg shadow-rose-500/25' : 'bg-white/10 text-white/70 border-white/15 hover:bg-white/5'
                             }`}
                           >
                             Cambiar
@@ -1089,11 +1096,11 @@ export default function App() {
 
                         {playerSwitchTo === -1 ? (
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Ataque Utilizado</label>
+                            <label className="text-[9px] uppercase tracking-wider text-white/45 font-bold">Ataque Utilizado</label>
                             <select
                               value={playerMoveUsed}
                               onChange={(e) => setPlayerMoveUsed(Number(e.target.value))}
-                              className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-semibold"
+                              className="w-full p-2 glass-panel text-xs font-semibold"
                             >
                               {playerParty[activePlayerIdx]?.moves.map((m, idx) => (
                                 <option key={idx} value={idx}>{m.name} ({m.type})</option>
@@ -1102,11 +1109,11 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Pokémon que ingresaste</label>
+                            <label className="text-[9px] uppercase tracking-wider text-white/45 font-bold">Pokémon que ingresaste</label>
                             <select
                               value={playerSwitchTo}
                               onChange={(e) => setPlayerSwitchTo(Number(e.target.value))}
-                              className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-semibold"
+                              className="w-full p-2 glass-panel text-xs font-semibold"
                             >
                               {playerParty.map((p, idx) => (
                                 <option key={idx} value={idx} disabled={idx === activePlayerIdx || p.hp <= 0}>
@@ -1118,32 +1125,32 @@ export default function App() {
                         )}
 
                         <div className="flex gap-4">
-                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 cursor-pointer">
+                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/70 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={playerCrit}
                               onChange={(e) => setPlayerCrit(e.target.checked)}
-                              className="rounded-none border-gray-300 text-black focus:ring-0"
+                              className="rounded-2xl border-white/20 text-white focus:ring-0"
                             />
                             ¿Golpe Crítico?
                           </label>
-                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 cursor-pointer">
+                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/70 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={playerMiss}
                               onChange={(e) => setPlayerMiss(e.target.checked)}
-                              className="rounded-none border-gray-300 text-black focus:ring-0"
+                              className="rounded-2xl border-white/20 text-white focus:ring-0"
                             />
                             ¿Falló ataque?
                           </label>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Estado aplicado a tu Pokémon en este turno</label>
+                          <label className="text-[9px] uppercase tracking-wider text-white/45 font-bold">Estado aplicado a tu Pokémon en este turno</label>
                           <select
                             value={playerStatusApplied}
                             onChange={(e) => setPlayerStatusApplied(e.target.value as StatusEffect)}
-                            className="w-full p-2 bg-gray-50 border border-gray-200 text-xs"
+                            className="w-full p-2 glass-panel text-xs"
                           >
                             {STATUS_LIST.map((st) => (
                               <option key={st} value={st}>{st === 'None' ? 'Ninguno' : st}</option>
@@ -1152,17 +1159,17 @@ export default function App() {
                         </div>
 
                         {/* Estado Real Post-Turno (HP Sync) */}
-                        <div className="space-y-2 pt-2 border-t border-gray-100">
-                          <label className="text-[10px] uppercase tracking-wider text-slate-800 font-extrabold block">Estado Real Post-Turno (Consola)</label>
+                        <div className="space-y-2 pt-2 border-t border-white/10">
+                          <label className="text-[10px] uppercase tracking-wider text-white/90 font-extrabold block">Estado Real Post-Turno (Consola)</label>
                           <div className="space-y-2">
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">¿Tu Pokémon sobrevivió?</span>
+                              <span className="text-[9px] uppercase tracking-wider text-white/45 font-bold block">¿Tu Pokémon sobrevivió?</span>
                               <div className="grid grid-cols-2 gap-2">
                                 <button
                                   type="button"
                                   onClick={() => setPlayerSurvived(true)}
                                   className={`py-1.5 text-[9px] font-bold uppercase tracking-wider border transition-all ${
-                                    playerSurvived ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                                    playerSurvived ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-white/10 text-white/70 border-white/15 hover:bg-white/5'
                                   }`}
                                 >
                                   Sí, sobrevivió
@@ -1174,7 +1181,7 @@ export default function App() {
                                     setPlayerRealHp('0');
                                   }}
                                   className={`py-1.5 text-[9px] font-bold uppercase tracking-wider border transition-all ${
-                                    !playerSurvived ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-600 border-gray-200 hover:bg-rose-50 hover:text-rose-600'
+                                    !playerSurvived ? 'bg-rose-600 text-white border-rose-600' : 'bg-white/10 text-white/70 border-white/15 hover:bg-rose-500/20 hover:text-rose-200'
                                   }`}
                                 >
                                   No, se debilitó
@@ -1184,7 +1191,7 @@ export default function App() {
 
                             {playerSurvived && (
                               <div className="space-y-1">
-                                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">HP Real Restante en la Consola</span>
+                                <span className="text-[9px] uppercase tracking-wider text-white/45 font-bold block">HP Real Restante en la Consola</span>
                                 <div className="flex items-center gap-2">
                                   <input
                                     type="number"
@@ -1193,9 +1200,9 @@ export default function App() {
                                     placeholder={String(playerParty[activePlayerIdx]?.hp || '')}
                                     value={playerRealHp}
                                     onChange={(e) => setPlayerRealHp(e.target.value)}
-                                    className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-mono font-bold"
+                                    className="w-full p-2 glass-panel text-xs font-mono font-bold"
                                   />
-                                  <span className="text-[10px] text-slate-400 font-mono">/ {playerParty[activePlayerIdx]?.maxHp} HP</span>
+                                  <span className="text-[10px] text-white/45 font-mono">/ {playerParty[activePlayerIdx]?.maxHp} HP</span>
                                 </div>
                               </div>
                             )}
@@ -1205,14 +1212,14 @@ export default function App() {
 
                       {/* Rival Choice */}
                       <div className="space-y-4">
-                        <h4 className="text-[10px] font-bold uppercase tracking-wider border-b border-gray-100 pb-1.5 text-slate-800">Acción del Rival</h4>
+                        <h4 className="text-[10px] font-bold uppercase tracking-wider border-b border-white/10 pb-1.5 text-white/90">Acción del Rival</h4>
                         
                         <div className="grid grid-cols-2 gap-2">
                           <button
                             type="button"
                             onClick={() => setRivalSwitchTo(-1)}
                             className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                              rivalSwitchTo === -1 ? 'bg-black text-white border-black' : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                              rivalSwitchTo === -1 ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white border-transparent shadow-lg shadow-rose-500/25' : 'bg-white/10 text-white/70 border-white/15 hover:bg-white/5'
                             }`}
                           >
                             Atacar
@@ -1224,7 +1231,7 @@ export default function App() {
                               setRivalSwitchTo(cand >= 0 ? cand : 0);
                             }}
                             className={`py-2 text-[10px] font-bold uppercase tracking-wider border transition-all ${
-                              rivalSwitchTo !== -1 ? 'bg-black text-white border-black' : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                              rivalSwitchTo !== -1 ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white border-transparent shadow-lg shadow-rose-500/25' : 'bg-white/10 text-white/70 border-white/15 hover:bg-white/5'
                             }`}
                           >
                             Cambiar
@@ -1233,11 +1240,11 @@ export default function App() {
 
                         {rivalSwitchTo === -1 ? (
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Ataque Utilizado por el Rival</label>
+                            <label className="text-[9px] uppercase tracking-wider text-white/45 font-bold">Ataque Utilizado por el Rival</label>
                             <select
                               value={rivalMoveUsed}
                               onChange={(e) => setRivalMoveUsed(Number(e.target.value))}
-                              className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-semibold"
+                              className="w-full p-2 glass-panel text-xs font-semibold"
                             >
                               {rivalParty[activeRivalIdx]?.moves.map((m, idx) => (
                                 <option key={idx} value={idx}>{m.name} ({m.type})</option>
@@ -1246,11 +1253,11 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="space-y-1">
-                            <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Pokémon que ingresó el Rival</label>
+                            <label className="text-[9px] uppercase tracking-wider text-white/45 font-bold">Pokémon que ingresó el Rival</label>
                             <select
                               value={rivalSwitchTo}
                               onChange={(e) => setRivalSwitchTo(Number(e.target.value))}
-                              className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-semibold"
+                              className="w-full p-2 glass-panel text-xs font-semibold"
                             >
                               {rivalParty.map((p, idx) => (
                                 <option key={idx} value={idx} disabled={idx === activeRivalIdx || p.hp <= 0}>
@@ -1262,32 +1269,32 @@ export default function App() {
                         )}
 
                         <div className="flex gap-4">
-                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 cursor-pointer">
+                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/70 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={rivalCrit}
                               onChange={(e) => setRivalCrit(e.target.checked)}
-                              className="rounded-none border-gray-300 text-black focus:ring-0"
+                              className="rounded-2xl border-white/20 text-white focus:ring-0"
                             />
                             ¿Fue Crítico?
                           </label>
-                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-slate-600 cursor-pointer">
+                          <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-white/70 cursor-pointer">
                             <input
                               type="checkbox"
                               checked={rivalMiss}
                               onChange={(e) => setRivalMiss(e.target.checked)}
-                              className="rounded-none border-gray-300 text-black focus:ring-0"
+                              className="rounded-2xl border-white/20 text-white focus:ring-0"
                             />
                             ¿Falló Rival?
                           </label>
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Estado aplicado al Pokémon Rival</label>
+                          <label className="text-[9px] uppercase tracking-wider text-white/45 font-bold">Estado aplicado al Pokémon Rival</label>
                           <select
                             value={rivalStatusApplied}
                             onChange={(e) => setRivalStatusApplied(e.target.value as StatusEffect)}
-                            className="w-full p-2 bg-gray-50 border border-gray-200 text-xs"
+                            className="w-full p-2 glass-panel text-xs"
                           >
                             {STATUS_LIST.map((st) => (
                               <option key={st} value={st}>{st === 'None' ? 'Ninguno' : st}</option>
@@ -1296,17 +1303,17 @@ export default function App() {
                         </div>
 
                         {/* Estado Real Post-Turno (HP Sync) */}
-                        <div className="space-y-2 pt-2 border-t border-gray-100">
-                          <label className="text-[10px] uppercase tracking-wider text-slate-800 font-extrabold block">Estado Real Post-Turno (Consola)</label>
+                        <div className="space-y-2 pt-2 border-t border-white/10">
+                          <label className="text-[10px] uppercase tracking-wider text-white/90 font-extrabold block">Estado Real Post-Turno (Consola)</label>
                           <div className="space-y-2">
                             <div className="space-y-1">
-                              <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">¿El Pokémon rival sobrevivió?</span>
+                              <span className="text-[9px] uppercase tracking-wider text-white/45 font-bold block">¿El Pokémon rival sobrevivió?</span>
                               <div className="grid grid-cols-2 gap-2">
                                 <button
                                   type="button"
                                   onClick={() => setRivalSurvived(true)}
                                   className={`py-1.5 text-[9px] font-bold uppercase tracking-wider border transition-all ${
-                                    rivalSurvived ? 'bg-slate-900 text-white border-slate-900' : 'bg-white text-slate-600 border-gray-200 hover:bg-gray-50'
+                                    rivalSurvived ? 'bg-emerald-500 text-white border-emerald-400' : 'bg-white/10 text-white/70 border-white/15 hover:bg-white/5'
                                   }`}
                                 >
                                   Sí, sobrevivió
@@ -1318,7 +1325,7 @@ export default function App() {
                                     setRivalRealHp('0');
                                   }}
                                   className={`py-1.5 text-[9px] font-bold uppercase tracking-wider border transition-all ${
-                                    !rivalSurvived ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-600 border-gray-200 hover:bg-rose-50 hover:text-rose-600'
+                                    !rivalSurvived ? 'bg-rose-600 text-white border-rose-600' : 'bg-white/10 text-white/70 border-white/15 hover:bg-rose-500/20 hover:text-rose-200'
                                   }`}
                                 >
                                   No, se debilitó
@@ -1328,7 +1335,7 @@ export default function App() {
 
                             {rivalSurvived && (
                               <div className="space-y-1">
-                                <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold block">HP Real Restante en la Consola</span>
+                                <span className="text-[9px] uppercase tracking-wider text-white/45 font-bold block">HP Real Restante en la Consola</span>
                                 <div className="flex items-center gap-2">
                                   <input
                                     type="number"
@@ -1337,9 +1344,9 @@ export default function App() {
                                     placeholder={String(rivalParty[activeRivalIdx]?.hp || '')}
                                     value={rivalRealHp}
                                     onChange={(e) => setRivalRealHp(e.target.value)}
-                                    className="w-full p-2 bg-gray-50 border border-gray-200 text-xs font-mono font-bold"
+                                    className="w-full p-2 glass-panel text-xs font-mono font-bold"
                                   />
-                                  <span className="text-[10px] text-slate-400 font-mono">/ {rivalParty[activeRivalIdx]?.maxHp} HP</span>
+                                  <span className="text-[10px] text-white/45 font-mono">/ {rivalParty[activeRivalIdx]?.maxHp} HP</span>
                                 </div>
                               </div>
                             )}
@@ -1352,7 +1359,7 @@ export default function App() {
                         <button
                           type="submit"
                           disabled={isCalculating}
-                          className="w-full py-4.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold uppercase tracking-[0.3em] transition-all disabled:bg-gray-100 disabled:text-gray-400"
+                          className="w-full py-4.5 btn-accent text-white text-xs font-bold uppercase tracking-[0.3em] transition-all disabled:bg-white/10 disabled:text-white/40"
                         >
                           {isCalculating ? 'Simulando resolución de daño...' : 'Ejecutar Turno y Sincronizar'}
                         </button>
@@ -1360,14 +1367,14 @@ export default function App() {
                     </form>
 
                     {/* Combat Log */}
-                    <div className="pt-4 border-t border-gray-100">
-                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-800 mb-2 flex items-center gap-1.5">
-                        <Activity className="w-3.5 h-3.5 text-slate-400" />
+                    <div className="pt-4 border-t border-white/10">
+                      <h4 className="text-[10px] font-bold uppercase tracking-widest text-white/90 mb-2 flex items-center gap-1.5">
+                        <Activity className="w-3.5 h-3.5 text-white/45" />
                         Registro de Combate Reciente (Stateless Logging)
                       </h4>
-                      <div className="bg-[#f9fafb] p-4 font-mono text-[11px] text-slate-600 space-y-1.5 max-h-[150px] overflow-y-auto border border-gray-100">
+                      <div className="bg-[#f9fafb] p-4 font-mono text-[11px] text-white/70 space-y-1.5 max-h-[150px] overflow-y-auto border border-white/10">
                         {battleHistory.length === 0 ? (
-                          <div className="text-gray-400 italic">No hay registros registrados.</div>
+                          <div className="text-white/40 italic">No hay registros registrados.</div>
                         ) : (
                           battleHistory.map((log, idx) => (
                             <div key={idx} className="border-l-2 border-slate-300 pl-2 py-0.5">{log}</div>
@@ -1383,21 +1390,21 @@ export default function App() {
           </>
         ) : (
           /* CODEBASE VIEW WITH SHINY MINIMALISM */
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-white">
+          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-white/10">
             
             {/* Project Tree */}
-            <aside className="w-72 border-r border-gray-100 p-6 flex flex-col justify-between shrink-0 bg-[#fafafa] overflow-y-auto">
+            <aside className="w-72 border-r border-white/10 p-6 flex flex-col justify-between shrink-0 bg-[#fafafa] overflow-y-auto">
               <div className="space-y-6">
                 <div>
-                  <label className="text-[9px] uppercase tracking-widest text-gray-400 mb-1.5 block font-bold">Clean Architecture</label>
-                  <h3 className="text-sm font-bold text-slate-900 tracking-tight">PokeOracle C# .NET 8</h3>
-                  <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                  <label className="text-[9px] uppercase tracking-widest text-white/40 mb-1.5 block font-bold">Clean Architecture</label>
+                  <h3 className="text-sm font-bold text-white tracking-tight">PokeOracle C# .NET 8</h3>
+                  <p className="text-[11px] text-white/50 mt-1 leading-relaxed">
                     Estructura desacoplada y modular con el patrón Strategy y base de datos en memoria.
                   </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <span className="text-[9px] text-gray-400 font-mono uppercase tracking-widest block font-bold">Proyectos C#</span>
+                  <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest block font-bold">Proyectos C#</span>
                   <div className="space-y-1">
                     {['PokeOracle.Domain', 'PokeOracle.Application', 'PokeOracle.Infrastructure', 'PokeOracle.WebApi'].map((proj) => (
                       <button
@@ -1409,8 +1416,8 @@ export default function App() {
                         }}
                         className={`w-full text-left px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all flex justify-between items-center border ${
                           selectedProject === proj
-                            ? 'bg-slate-900 text-white border-slate-900'
-                            : 'bg-white hover:bg-gray-100 text-slate-700 border-gray-200'
+                            ? 'bg-emerald-500 text-white border-emerald-400'
+                            : 'bg-white/10 hover:bg-white/10 text-white/80 border-white/15'
                         }`}
                       >
                         <span className="truncate">{proj}</span>
@@ -1421,18 +1428,18 @@ export default function App() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <span className="text-[9px] text-gray-400 font-mono uppercase tracking-widest block font-bold">Buscar en Código</span>
+                  <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest block font-bold">Buscar en Código</span>
                   <input
                     type="text"
                     placeholder="Ej. Strategy, EF Core..."
                     value={searchCodeQuery}
                     onChange={(e) => setSearchCodeQuery(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-white border border-gray-200 placeholder-gray-300 focus:outline-none font-mono"
+                    className="w-full px-3 py-2 text-xs bg-black/30 border border-white/15 placeholder-white/30 focus:outline-none font-mono rounded-xl"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <span className="text-[9px] text-gray-400 font-mono uppercase tracking-widest block font-bold">Archivos</span>
+                  <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest block font-bold">Archivos</span>
                   <div className="space-y-1 max-h-[220px] overflow-y-auto pr-2">
                     {filteredFiles.map((file) => (
                       <button
@@ -1440,11 +1447,11 @@ export default function App() {
                         onClick={() => setSelectedFile(file)}
                         className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-all flex items-center gap-2 border ${
                           selectedFile.path === file.path && selectedFile.project === file.project
-                            ? 'bg-gray-200 text-slate-900 font-bold border-gray-200'
-                            : 'hover:bg-gray-100 text-gray-500 border-transparent bg-transparent'
+                            ? 'bg-white/15 text-white font-bold border-white/15'
+                            : 'hover:bg-white/10 text-white/50 border-transparent bg-transparent'
                         }`}
                       >
-                        <FileCode className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+                        <FileCode className="w-3.5 h-3.5 text-white/40 shrink-0" />
                         <span className="truncate">{file.path}</span>
                       </button>
                     ))}
@@ -1452,8 +1459,8 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-gray-200 text-[10px] text-gray-400 font-mono space-y-1 leading-relaxed">
-                <div className="font-bold text-slate-700 uppercase tracking-widest text-[9px] mb-1">Dependencias:</div>
+              <div className="pt-4 border-t border-white/10 text-[10px] text-white/40 font-mono space-y-1 leading-relaxed">
+                <div className="font-bold text-white/80 uppercase tracking-widest text-[9px] mb-1">Dependencias:</div>
                 <div>Domain ─── Sin dependencias</div>
                 <div>Application ─── Domain</div>
                 <div>Infrastructure ─── Application & Domain</div>
@@ -1462,16 +1469,16 @@ export default function App() {
             </aside>
 
             {/* Code Output Screen */}
-            <div className="flex-1 flex flex-col bg-[#0b0f19] text-slate-200 overflow-hidden">
-              <div className="border-b border-slate-900 px-6 py-4 flex justify-between items-center bg-[#131a2c] shrink-0">
+            <div className="flex-1 flex flex-col bg-[#0b0f19] text-white/70 overflow-hidden">
+              <div className="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-black/40 backdrop-blur-xl shrink-0">
                 <div className="flex items-center gap-2 font-mono text-xs">
-                  <span className="text-slate-500">{selectedFile.project}/</span>
-                  <span className="text-slate-200 font-bold">{selectedFile.path}</span>
+                  <span className="text-white/55">{selectedFile.project}/</span>
+                  <span className="text-white/70 font-bold">{selectedFile.path}</span>
                 </div>
 
                 <button
                   onClick={() => handleCopyCode(selectedFile.content)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-100 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all rounded-none"
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white/70 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all rounded-2xl"
                 >
                   {copiedFile === selectedFile.path ? (
                     <>
@@ -1491,7 +1498,7 @@ export default function App() {
                 </pre>
               </div>
 
-              <div className="bg-[#111622] border-t border-slate-950 p-3 text-[9px] font-mono text-slate-500 flex justify-between shrink-0 uppercase tracking-widest">
+              <div className="bg-[#111622] border-t border-slate-950 p-3 text-[9px] font-mono text-white/55 flex justify-between shrink-0 uppercase tracking-widest">
                 <span>Plataforma: .NET 8.0</span>
                 <span>Arquitectura Limpia y Desacoplada</span>
               </div>
@@ -1501,7 +1508,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-gray-100 py-3.5 px-8 text-[10px] text-gray-400 flex flex-col sm:flex-row justify-between items-center gap-2 bg-white shrink-0 font-mono uppercase tracking-wider">
+      <footer className="border-t border-white/10 py-3.5 px-8 text-[10px] text-white/40 flex flex-col sm:flex-row justify-between items-center gap-2 bg-[#0a0e17]/70 backdrop-blur-xl shrink-0 font-mono uppercase tracking-wider">
         <span>© 2026 PokeOracle Studio</span>
         <div className="flex gap-4">
           <span>Heurística: Expectiminimax Depth 3</span>

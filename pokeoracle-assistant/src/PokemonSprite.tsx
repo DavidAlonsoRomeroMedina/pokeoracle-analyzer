@@ -46,7 +46,7 @@ export function PokemonSprite({
   if (!src || failed) {
     return (
       <div
-        className={`${box} flex items-center justify-center bg-gray-200 text-slate-500 font-bold font-mono ${FALLBACK_TEXT[size]}`}
+        className={`${box} flex items-center justify-center rounded-xl bg-white/10 text-white/70 font-bold font-mono ${FALLBACK_TEXT[size]}`}
         title={name}
         aria-hidden="true"
       >
