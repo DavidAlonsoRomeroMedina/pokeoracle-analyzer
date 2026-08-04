@@ -1,4 +1,5 @@
 using System.Net.Http.Headers;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PokeOracle.Application.Interfaces;
 using PokeOracle.Application.Services;
@@ -8,7 +9,12 @@ using PokeOracle.Infrastructure.PokeApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // El cliente trabaja con los enums en texto ("Fire", "Burn"). Sin esto el
+    // modelo se rechaza con 400 al crear una batalla.
+    options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -36,6 +42,9 @@ builder.Services.AddHttpClient(PokeApiOptions.HttpClientName, client =>
 
 // Singleton: el catálogo de Kanto es inmutable y se cachea en memoria tras la primera descarga.
 builder.Services.AddSingleton<IPokemonExternalService, PokeApiHttpClient>();
+
+// Respaldo local para movimientos y para cuando PokéAPI no responde.
+builder.Services.AddSingleton<ILocalDataCatalog, JsonLocalDataCatalog>();
 
 builder.Services.AddCors(options =>
 {

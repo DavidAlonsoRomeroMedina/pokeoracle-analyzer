@@ -6,6 +6,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Se copian al directorio de salida para que JsonMoveCatalog los encuentre en runtime. -->
+    <Content Include="Data\moves_data.json" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Data\pokemon_data.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.9" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />

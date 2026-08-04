@@ -79,7 +79,7 @@ public class BattleController : ControllerBase
 
         await _repository.SaveAsync(state);
         var nextRecommendation = _aiService.ComputeNextMove(state);
-        return Ok(new { recommendation = nextRecommendation, sessionState = state, isSwitchRequired = state.IsSwitchRequired });
+        return Ok(TurnResponseDto.From(nextRecommendation, state));
     }
 
     [HttpPost("{sessionId}/turn")]
@@ -146,6 +146,6 @@ public class BattleController : ControllerBase
 
         await _repository.SaveAsync(state);
         var aiRecommendation = _aiService.ComputeNextMove(state);
-        return Ok(new { recommendation = aiRecommendation, sessionState = state, isSwitchRequired = state.IsSwitchRequired });
+        return Ok(TurnResponseDto.From(aiRecommendation, state));
     }
 }

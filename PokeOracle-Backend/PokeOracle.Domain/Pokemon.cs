@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using PokeOracle.Domain.Common;
 
 namespace PokeOracle.Domain.Entities;
@@ -7,6 +8,9 @@ public class Pokemon
     public string Name { get; set; } = string.Empty;
     public List<PokemonType> Types { get; set; } = new();
     public int HP { get; set; }
+
+    // La política camelCase convierte "MaxHP" en "maxHP", pero el cliente lee "maxHp".
+    [JsonPropertyName("maxHp")]
     public int MaxHP { get; set; }
     public int Attack { get; set; }
     public int Defense { get; set; }

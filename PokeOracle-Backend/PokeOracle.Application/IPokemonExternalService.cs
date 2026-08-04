@@ -13,6 +13,12 @@ public interface IPokemonExternalService
     Task<IReadOnlyList<PokemonSummaryDto>> GetGenerationOnePokemonAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Los 151 Pokémon de Kanto con sprites y estadísticas base, en el formato que
+    /// consume el cliente web para rellenar equipos.
+    /// </summary>
+    Task<IReadOnlyList<PokemonCatalogEntryDto>> GetGenerationOnePokemonWithStatsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Ficha completa de un Pokémon de Kanto. Devuelve <c>null</c> si el número
     /// de Pokédex está fuera del rango 1-151.
     /// </summary>

@@ -59,6 +59,28 @@ public sealed class PokeApiHttpClient : IPokemonExternalService
             .ToList();
     }
 
+    public async Task<IReadOnlyList<PokemonCatalogEntryDto>> GetGenerationOnePokemonWithStatsAsync(CancellationToken cancellationToken = default)
+    {
+        var detail = await GetAllGenerationOneDetailsAsync(cancellationToken).ConfigureAwait(false);
+
+        return detail
+            .Select(p => new PokemonCatalogEntryDto
+            {
+                PokedexNumber = p.PokedexNumber,
+                Name = p.DisplayName,
+                Types = p.Types,
+                Hp = p.BaseStats.Hp,
+                Attack = p.BaseStats.Attack,
+                Defense = p.BaseStats.Defense,
+                SpAttack = p.BaseStats.SpecialAttack,
+                SpDefense = p.BaseStats.SpecialDefense,
+                Speed = p.BaseStats.Speed,
+                SpriteUrl = p.SpriteUrl,
+                ArtworkUrl = p.ArtworkUrl
+            })
+            .ToList();
+    }
+
     public async Task<PokemonDetailDto?> GetPokemonAsync(int pokedexNumber, CancellationToken cancellationToken = default)
     {
         if (!IsGenerationOne(pokedexNumber))
