@@ -1,0 +1,18 @@
+<<<<<<< HEAD
+{
+  "version": 2,
+  "dgSpecHash": "U22h6U2s5xQ=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\david\\OneDrive\\Escritorio\\Pokeoracle-Madre\\PokeOracle-Backend\\PokeOracle.Domain\\PokeOracle.Domain.csproj",
+  "expectedPackageFiles": [],
+  "logs": []
+=======
+{
+  "version": 2,
+  "dgSpecHash": "OfEORjz2j8A=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Usuario\\Documents\\PokeOracle-Backend\\PokeOracle.Domain\\PokeOracle.Domain.csproj",
+  "expectedPackageFiles": [],
+  "logs": []
+>>>>>>> 063c35bd5ca941119c2db745bf84c16baf9ff108
+}
