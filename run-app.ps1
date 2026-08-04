@@ -28,30 +28,56 @@ $wwwrootIndex = Join-Path $projectDir 'wwwroot/index.html'
 $frontendDir = Join-Path $PSScriptRoot 'pokeoracle-assistant'
 $qrHtmlPath = Join-Path $PSScriptRoot 'mostrar-qr.html'
 
+function Test-UsableLanIPv4 {
+    param([string]$Ip)
+    if ([string]::IsNullOrWhiteSpace($Ip)) { return $false }
+    if ($Ip -eq '0.0.0.0') { return $false }
+    if ($Ip -match '^127\.') { return $false }
+    if ($Ip -match '^169\.254\.') { return $false }
+    return $true
+}
+
+function Get-IpPreferenceRank {
+    param([string]$Ip)
+    if ($Ip -match '^192\.168\.') { return 0 }
+    if ($Ip -match '^10\.') { return 1 }
+    if ($Ip -match '^172\.16\.') { return 2 }
+    # Docker / Hyper-V habituales: ultimo recurso
+    if ($Ip -match '^172\.(1[7-9]|2[0-9]|3[0-1])\.') { return 9 }
+    return 5
+}
+
 function Get-LocalIPv4 {
+    # 1) Preferir adaptadores Wi-Fi / WLAN con IPv4 privada.
+    try {
+        $wifi = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.PrefixOrigin -ne 'WellKnown' -and
+                (Test-UsableLanIPv4 $_.IPAddress) -and
+                ($_.InterfaceAlias -match '(?i)wi-?fi|wlan|wireless|wifi')
+            } |
+            Sort-Object { Get-IpPreferenceRank $_.IPAddress }
+
+        if ($wifi) { return $wifi[0].IPAddress }
+    }
+    catch { }
+
+    # 2) IP de la ruta por defecto (UDP connect): suele ser la LAN activa.
     try {
         $udp = New-Object System.Net.Sockets.UdpClient
         $udp.Connect('8.8.8.8', 53)
         $ip = ([System.Net.IPEndPoint]$udp.Client.LocalEndPoint).Address.ToString()
         $udp.Dispose()
-        if ($ip -and $ip -ne '0.0.0.0' -and -not $ip.StartsWith('127.')) {
-            return $ip
-        }
+        if (Test-UsableLanIPv4 $ip) { return $ip }
     }
     catch { }
 
+    # 3) Cualquier IPv4 usable, priorizando 192.168 / 10.x sobre puentes Docker.
     $candidates = [System.Net.Dns]::GetHostAddresses([System.Net.Dns]::GetHostName()) |
         Where-Object { $_.AddressFamily -eq 'InterNetwork' } |
         ForEach-Object { $_.ToString() } |
-        Where-Object {
-            $_ -notmatch '^127\.' -and
-            $_ -notmatch '^169\.254\.' -and
-            (
-                $_ -match '^10\.' -or
-                $_ -match '^192\.168\.' -or
-                $_ -match '^172\.(1[6-9]|2[0-9]|3[0-1])\.'
-            )
-        }
+        Where-Object { Test-UsableLanIPv4 $_ } |
+        Sort-Object { Get-IpPreferenceRank $_ }
 
     if ($candidates) { return $candidates[0] }
     return $null
@@ -120,7 +146,7 @@ function Write-MostrarQrHtml {
       <img id="qr-img"
            src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&amp;margin=8&amp;data=$encoded"
            alt="Codigo QR PokeOracle"
-           onerror="this.style.display='none'; window.renderJsQr &amp;&amp; window.renderJsQr();" />
+           onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=420&amp;text=$encoded'; setTimeout(function(){ if(window.renderJsQr) window.renderJsQr(); }, 2500);" />
     </div>
     <a class="url" href="$LanUrl">$LanUrl</a>
     <p class="meta">IP detectada: $LocalIp · Puerto 5110</p>
@@ -128,6 +154,7 @@ function Write-MostrarQrHtml {
   <script>
     window.renderJsQr = function () {
       var host = document.getElementById('qr');
+      if (!host || host.querySelector('canvas')) return;
       host.innerHTML = '';
       if (typeof QRCode === 'undefined') {
         host.innerHTML = '<p style="color:#111;font-weight:700;padding:12px">No se pudo generar el QR. Abre:<br>$LanUrl</p>';

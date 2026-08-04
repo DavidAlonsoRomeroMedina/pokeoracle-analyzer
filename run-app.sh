@@ -33,25 +33,80 @@ for arg in "$@"; do
   esac
 done
 
+pick_best_ipv4() {
+  # Prioriza LAN de aula (192.168), luego 10.x; evita loopback/APIPA; Docker solo como ultimo recurso.
+  python3 - "$@" <<'PY'
+import re, sys
+ips = [a.strip() for a in sys.argv[1:] if a.strip()]
+
+def classify(ip):
+    if re.match(r'^127\.', ip) or re.match(r'^169\.254\.', ip) or ip == '0.0.0.0':
+        return None
+    if re.match(r'^192\.168\.', ip):
+        return 0
+    if re.match(r'^10\.', ip):
+        return 1
+    # 172.16.x suele ser LAN; 172.17–31 suele ser Docker/Hyper-V
+    if re.match(r'^172\.16\.', ip):
+        return 2
+    if re.match(r'^172\.(1[7-9]|2[0-9]|3[01])\.', ip):
+        return 9
+    return 5
+
+ranked = []
+for ip in ips:
+    rank = classify(ip)
+    if rank is not None:
+        ranked.append((rank, ip))
+if ranked:
+    ranked.sort()
+    print(ranked[0][1])
+PY
+}
+
 detect_ip() {
-  # Preferir la IP de la ruta por defecto (interfaz Wi-Fi / LAN activa).
+  local candidate=""
+
+  # 1) IP de la ruta por defecto (interfaz Wi-Fi / LAN activa).
   if command -v ip >/dev/null 2>&1; then
-    ip -4 route get 8.8.8.8 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}'
-    return
+    candidate="$(ip -4 route get 8.8.8.8 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i=="src"){print $(i+1); exit}}' || true)"
+    candidate="$(echo "$candidate" | tr -d '[:space:]')"
+    if [[ -n "$candidate" && "$candidate" != 127.* && "$candidate" != 169.254.* ]]; then
+      echo "$candidate"
+      return
+    fi
   fi
-  if command -v hostname >/dev/null 2>&1; then
-    hostname -I 2>/dev/null | awk '{print $1}'
-    return
-  fi
-  python3 - <<'PY'
+
+  # 2) UDP "trick" via Python (misma idea que en Windows/PowerShell).
+  if command -v python3 >/dev/null 2>&1; then
+    candidate="$(python3 - <<'PY'
 import socket
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 try:
     s.connect(("8.8.8.8", 53))
     print(s.getsockname()[0])
+except Exception:
+    pass
 finally:
     s.close()
 PY
+)"
+    candidate="$(echo "$candidate" | tr -d '[:space:]')"
+    if [[ -n "$candidate" && "$candidate" != 127.* && "$candidate" != 0.0.0.0 ]]; then
+      echo "$candidate"
+      return
+    fi
+  fi
+
+  # 3) Listado de IPs: elegir la mejor (evita Docker 172.17/18…).
+  if command -v hostname >/dev/null 2>&1; then
+    # shellcheck disable=SC2046
+    candidate="$(pick_best_ipv4 $(hostname -I 2>/dev/null || true))"
+    if [[ -n "$candidate" ]]; then
+      echo "$candidate"
+      return
+    fi
+  fi
 }
 
 open_browser() {
@@ -126,7 +181,7 @@ write_qr_html() {
       <img id="qr-img"
            src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&amp;margin=8&amp;data=${encoded}"
            alt="Codigo QR PokeOracle"
-           onerror="this.style.display='none'; window.renderJsQr && window.renderJsQr();" />
+           onerror="this.onerror=null; this.src='https://quickchart.io/qr?size=420&amp;text=${encoded}'; setTimeout(function(){ if(window.renderJsQr) window.renderJsQr(); }, 2500);" />
     </div>
     <a class="url" href="${lan_url}">${lan_url}</a>
     <p class="meta">IP detectada: ${local_ip} · Puerto 5110</p>
@@ -134,6 +189,7 @@ write_qr_html() {
   <script>
     window.renderJsQr = function () {
       var host = document.getElementById('qr');
+      if (!host || host.querySelector('canvas')) return;
       host.innerHTML = '';
       if (typeof QRCode === 'undefined') {
         host.innerHTML = '<p style="color:#111;font-weight:700;padding:12px">No se pudo generar el QR. Abre:<br>${lan_url}</p>';
