@@ -1,0 +1,29 @@
+﻿name: PokeOracle CI Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout del código
+      uses: actions/checkout@v3
+
+    - name: Configurar .NET 8
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restaurar dependencias
+      run: dotnet restore PokeOracle-Backend/PokeOracle.WebApi/PokeOracle.WebApi.csproj
+
+    - name: Compilar el proyecto
+      run: dotnet build PokeOracle-Backend/PokeOracle.WebApi/PokeOracle.WebApi.csproj --no-restore
+
+    - name: Ejecutar Pruebas Unitarias
+      run: dotnet test PokeOracle-Backend/PokeOracle.Tests/PokeOracle.Tests.csproj --no-build --verbosity normal
