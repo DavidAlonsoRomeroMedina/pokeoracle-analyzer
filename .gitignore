@@ -54,3 +54,6 @@ yarn-error.log*
 ## --- Sistema operativo ---
 .DS_Store
 Thumbs.db
+
+## --- Generado al presentar (IP local de cada maquina) ---
+mostrar-qr.html
