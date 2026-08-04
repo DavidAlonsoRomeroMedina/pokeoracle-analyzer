@@ -1,19 +1,20 @@
 <#
 .SYNOPSIS
-    Arranca PokeOracle.WebApi y abre Swagger en el navegador.
+    Arranca PokeOracle (backend + web app) y abre el navegador.
 
 .DESCRIPTION
-    Compila y ejecuta la WebApi con el perfil 'https' de launchSettings.json y abre
-    la interfaz de Swagger en cuanto el servidor responde. La comprobacion se hace
-    sondeando el endpoint, no con una espera fija, para que el navegador no se abra
-    antes de que la aplicacion este lista.
+    1. Compila el frontend React a wwwroot si aun no esta construido.
+    2. Ejecuta PokeOracle.WebApi.
+    3. Abre la web app en cuanto Kestrel acepta conexiones.
 
 .PARAMETER LaunchProfile
-    Perfil de launchSettings.json a usar: 'https' (por defecto) o 'http'.
-    No se llama 'Profile' porque $Profile es una variable automatica de PowerShell.
+    Perfil de launchSettings.json: 'https' (por defecto) o 'http'.
 
 .PARAMETER NoBrowser
-    Arranca la aplicacion sin abrir el navegador.
+    Arranca sin abrir el navegador.
+
+.PARAMETER RebuildFrontend
+    Fuerza la recompilacion del frontend aunque wwwroot ya exista.
 
 .EXAMPLE
     .\run-app.ps1
@@ -25,17 +26,21 @@ param(
     [ValidateSet('https', 'http')]
     [string]$LaunchProfile = 'https',
 
-    [switch]$NoBrowser
+    [switch]$NoBrowser,
+
+    [switch]$RebuildFrontend
 )
 
 $ErrorActionPreference = 'Stop'
 
-# Puertos declarados en PokeOracle.WebApi/Properties/launchSettings.json
 $port = if ($LaunchProfile -eq 'https') { 7004 } else { 5110 }
 $baseUrl = "$($LaunchProfile)://localhost:$port"
+$appUrl = $baseUrl
 $swaggerUrl = "$baseUrl/swagger"
 
 $projectDir = Join-Path $PSScriptRoot 'PokeOracle-Backend/PokeOracle.WebApi'
+$wwwrootIndex = Join-Path $projectDir 'wwwroot/index.html'
+$frontendDir = Join-Path $PSScriptRoot 'pokeoracle-assistant'
 
 if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     Write-Host ''
@@ -53,15 +58,41 @@ if (-not (Test-Path $projectDir)) {
     exit 1
 }
 
+# Construye el frontend si falta, para que la raiz del servidor no devuelva 404.
+if ($RebuildFrontend -or -not (Test-Path $wwwrootIndex)) {
+    if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
+        Write-Host ''
+        Write-Host '  Falta la web app en wwwroot y no hay npm para construirla.' -ForegroundColor Red
+        Write-Host '  Instala Node.js o ejecuta: cd pokeoracle-assistant && npm run build:dotnet' -ForegroundColor Red
+        Write-Host ''
+        exit 1
+    }
+
+    Write-Host ''
+    Write-Host '  Construyendo la web app (React -> wwwroot)...' -ForegroundColor Cyan
+    Push-Location $frontendDir
+    try {
+        if (-not (Test-Path (Join-Path $frontendDir 'node_modules'))) {
+            & npm install
+            if ($LASTEXITCODE -ne 0) { throw "npm install fallo con codigo $LASTEXITCODE" }
+        }
+        & npm run build:dotnet
+        if ($LASTEXITCODE -ne 0) { throw "npm run build:dotnet fallo con codigo $LASTEXITCODE" }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 Write-Host ''
 Write-Host '  ==========================================================' -ForegroundColor DarkCyan
 Write-Host '     PokeOracle  -  Simulador y analisis de combates' -ForegroundColor Cyan
 Write-Host '  ==========================================================' -ForegroundColor DarkCyan
 Write-Host ''
-Write-Host '   Swagger      : ' -NoNewline -ForegroundColor Gray
-Write-Host $swaggerUrl -ForegroundColor Yellow
-Write-Host '   Catalogo Gen1: ' -NoNewline -ForegroundColor Gray
-Write-Host "$baseUrl/api/pokemoncatalog/pokemon" -ForegroundColor Yellow
+Write-Host '   Web App : ' -NoNewline -ForegroundColor Gray
+Write-Host $appUrl -ForegroundColor Yellow
+Write-Host '   Swagger : ' -NoNewline -ForegroundColor Gray
+Write-Host $swaggerUrl -ForegroundColor DarkGray
 Write-Host ''
 Write-Host '   Para detener la aplicacion pulsa ' -NoNewline -ForegroundColor Gray
 Write-Host 'Ctrl+C' -NoNewline -ForegroundColor Magenta
@@ -71,44 +102,32 @@ Write-Host '  ----------------------------------------------------------' -Foreg
 Write-Host ''
 
 if ($LaunchProfile -eq 'https') {
-    # Sin certificado de desarrollo confiable el navegador muestra un aviso de seguridad.
     & dotnet dev-certs https --check --quiet 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
         Write-Host '   Aviso: el certificado HTTPS de desarrollo no esta confiado.' -ForegroundColor DarkYellow
-        Write-Host '   Ejecuta "dotnet dev-certs https --trust" para evitar el aviso del navegador,' -ForegroundColor DarkYellow
-        Write-Host '   o usa ".\run-app.ps1 -LaunchProfile http".' -ForegroundColor DarkYellow
+        Write-Host '   Ejecuta "dotnet dev-certs https --trust" o usa "-LaunchProfile http".' -ForegroundColor DarkYellow
         Write-Host ''
     }
 }
 
 $browserJob = $null
 if (-not $NoBrowser) {
-    $browserJob = Start-Job -ArgumentList $swaggerUrl, $port -ScriptBlock {
+    $browserJob = Start-Job -ArgumentList $appUrl, $port -ScriptBlock {
         param($url, $port)
-
-        # Se sondea el puerto TCP en lugar de hacer una peticion HTTP: funciona igual en
-        # Windows PowerShell 5.1 y en PowerShell 7, y evita el aviso del certificado
-        # autofirmado cuando se arranca en HTTPS.
         for ($i = 0; $i -lt 120; $i++) {
             Start-Sleep -Milliseconds 500
-
             $client = New-Object System.Net.Sockets.TcpClient
             try {
                 $client.Connect('localhost', $port)
                 if ($client.Connected) {
                     $client.Close()
-                    # Kestrel acepta conexiones pero aun esta montando el pipeline.
                     Start-Sleep -Seconds 1
                     Start-Process $url
                     return
                 }
             }
-            catch {
-                # Todavia no escucha nadie: se reintenta.
-            }
-            finally {
-                $client.Dispose()
-            }
+            catch { }
+            finally { $client.Dispose() }
         }
     }
 }

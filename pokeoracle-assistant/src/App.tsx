@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Pokemon,
   Move,
@@ -6,9 +6,11 @@ import {
   StatusEffect,
   MoveCategory,
   SuggestionResult,
-  BattleSession
+  BattleSession,
+  PokemonCatalogEntry
 } from './types';
 import { csharpCodebase, CSharpFile } from './csharpCode';
+import { PokemonSprite } from './PokemonSprite';
 import {
   Sparkles,
   Play,
@@ -48,10 +50,22 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'simulator' | 'codebase'>('simulator');
 
   // --- Catalogs from API ---
-  const [pokemonCatalog, setPokemonCatalog] = useState<any[]>([]);
+  const [pokemonCatalog, setPokemonCatalog] = useState<PokemonCatalogEntry[]>([]);
   const [movesCatalog, setMovesCatalog] = useState<Move[]>([]);
   const [abilitiesCatalog, setAbilitiesCatalog] = useState<string[]>([]);
   const [itemsCatalog, setItemsCatalog] = useState<string[]>([]);
+
+  // Los equipos solo guardan el nombre de la especie, así que el sprite se
+  // resuelve por nombre contra el catálogo.
+  const spriteByName = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const entry of pokemonCatalog) {
+      if (entry.spriteUrl) map.set(entry.name.toLowerCase(), entry.spriteUrl);
+    }
+    return map;
+  }, [pokemonCatalog]);
+
+  const spriteFor = (name?: string) => (name ? spriteByName.get(name.toLowerCase()) : undefined);
 
   // --- Battle Simulation State ---
   const [sessionId, setSessionId] = useState<string>('');
@@ -503,11 +517,11 @@ export default function App() {
                         <div
                           key={i}
                           title={`${p.name} (${p.hp}/${p.maxHp} HP)`}
-                          className={`h-6 rounded-none flex items-center justify-center text-[10px] font-bold font-mono ${
-                            p.hp <= 0 ? 'bg-red-100 text-red-500 line-through' : i === activePlayerIdx ? 'bg-black text-white' : 'bg-gray-100 text-slate-600'
+                          className={`h-8 rounded-none flex items-center justify-center ${
+                            p.hp <= 0 ? 'bg-red-50' : i === activePlayerIdx ? 'bg-black' : 'bg-gray-100'
                           }`}
                         >
-                          {p.name.charAt(0)}
+                          <PokemonSprite name={p.name} src={spriteFor(p.name)} size="xs" fainted={p.hp <= 0} />
                         </div>
                       ))}
                     </div>
@@ -583,9 +597,12 @@ export default function App() {
                                   : 'bg-gray-50 hover:bg-gray-100 border-gray-200 text-slate-800'
                               }`}
                             >
-                              <div className="truncate">
-                                <span className="text-[10px] font-mono mr-2 text-gray-400">SLOT {idx + 1}</span>
-                                <span className="font-bold text-xs uppercase tracking-tight">{pkm.name || 'Seleccionar...'}</span>
+                              <div className="flex items-center gap-2.5 min-w-0">
+                                <PokemonSprite name={pkm.name} src={spriteFor(pkm.name)} size="sm" />
+                                <div className="truncate">
+                                  <span className="text-[10px] font-mono mr-2 text-gray-400">SLOT {idx + 1}</span>
+                                  <span className="font-bold text-xs uppercase tracking-tight">{pkm.name || 'Seleccionar...'}</span>
+                                </div>
                               </div>
                               <div className="flex items-center gap-1.5 font-mono text-[9px]">
                                 <span className="text-[9px] uppercase text-gray-400 truncate max-w-[80px]">{(pkm as any).ability}</span>
@@ -612,15 +629,22 @@ export default function App() {
                             {/* Dropdown 151 Kanto Species */}
                             <div className="space-y-1">
                               <label className="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Especie Pokémon (151 Kanto)</label>
-                              <select
-                                value={currentEditingPokemon.name}
-                                onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'name', e.target.value)}
-                                className="w-full p-2.5 bg-white border border-gray-200 text-xs font-bold uppercase tracking-wider"
-                              >
-                                {pokemonCatalog.map((p) => (
-                                  <option key={p.name} value={p.name}>{p.name}</option>
-                                ))}
-                              </select>
+                              <div className="flex items-center gap-3">
+                                <div className="bg-white border border-gray-200 p-1 shrink-0">
+                                  <PokemonSprite name={currentEditingPokemon.name} src={spriteFor(currentEditingPokemon.name)} size="lg" />
+                                </div>
+                                <select
+                                  value={currentEditingPokemon.name}
+                                  onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'name', e.target.value)}
+                                  className="w-full p-2.5 bg-white border border-gray-200 text-xs font-bold uppercase tracking-wider"
+                                >
+                                  {pokemonCatalog.map((p) => (
+                                    <option key={p.name} value={p.name}>
+                                      {String(p.pokedexNumber).padStart(3, '0')} · {p.name}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
                             </div>
 
                             {/* IV/EV Real Stats Input */}
@@ -961,9 +985,17 @@ export default function App() {
                             <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 border border-yellow-200 text-[8px] font-bold uppercase">{playerParty[activePlayerIdx]?.status}</span>
                           )}
                         </div>
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="text-lg font-bold text-slate-900 uppercase tracking-tight">{playerParty[activePlayerIdx]?.name}</h4>
-                          <span className="text-xs font-mono text-slate-500">HP: {playerParty[activePlayerIdx]?.hp} / {playerParty[activePlayerIdx]?.maxHp}</span>
+                        <div className="flex items-center gap-3">
+                          <PokemonSprite
+                            name={playerParty[activePlayerIdx]?.name}
+                            src={spriteFor(playerParty[activePlayerIdx]?.name)}
+                            size="lg"
+                            fainted={(playerParty[activePlayerIdx]?.hp ?? 0) <= 0}
+                          />
+                          <div className="flex justify-between items-baseline grow min-w-0">
+                            <h4 className="text-lg font-bold text-slate-900 uppercase tracking-tight truncate">{playerParty[activePlayerIdx]?.name}</h4>
+                            <span className="text-xs font-mono text-slate-500 shrink-0 ml-2">HP: {playerParty[activePlayerIdx]?.hp} / {playerParty[activePlayerIdx]?.maxHp}</span>
+                          </div>
                         </div>
                         <div className="w-full bg-gray-200 h-1">
                           <div
@@ -992,9 +1024,17 @@ export default function App() {
                             <span className="px-1.5 py-0.5 bg-yellow-100 text-yellow-800 border border-yellow-200 text-[8px] font-bold uppercase">{rivalParty[activeRivalIdx]?.status}</span>
                           )}
                         </div>
-                        <div className="flex justify-between items-baseline">
-                          <h4 className="text-lg font-bold text-slate-900 uppercase tracking-tight">{rivalParty[activeRivalIdx]?.name}</h4>
-                          <span className="text-xs font-mono text-slate-500">HP: {rivalParty[activeRivalIdx]?.hp} / {rivalParty[activeRivalIdx]?.maxHp}</span>
+                        <div className="flex items-center gap-3">
+                          <PokemonSprite
+                            name={rivalParty[activeRivalIdx]?.name}
+                            src={spriteFor(rivalParty[activeRivalIdx]?.name)}
+                            size="lg"
+                            fainted={(rivalParty[activeRivalIdx]?.hp ?? 0) <= 0}
+                          />
+                          <div className="flex justify-between items-baseline grow min-w-0">
+                            <h4 className="text-lg font-bold text-slate-900 uppercase tracking-tight truncate">{rivalParty[activeRivalIdx]?.name}</h4>
+                            <span className="text-xs font-mono text-slate-500 shrink-0 ml-2">HP: {rivalParty[activeRivalIdx]?.hp} / {rivalParty[activeRivalIdx]?.maxHp}</span>
+                          </div>
                         </div>
                         <div className="w-full bg-gray-200 h-1">
                           <div

@@ -70,11 +70,14 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
+// La web app React se sirve desde wwwroot (npm run build:dotnet).
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();
+// Cualquier ruta que no sea API cae en la SPA.
 app.MapFallbackToFile("index.html");
 
 app.Run();
