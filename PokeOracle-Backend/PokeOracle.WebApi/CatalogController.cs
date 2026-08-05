@@ -5,85 +5,113 @@ using PokeOracle.Application.Interfaces;
 namespace PokeOracle.WebApi.Controllers;
 
 /// <summary>
-/// Catálogos que consume el cliente web para construir equipos.
+/// Catálogos que consume el cliente web. Tras el seeding, todo sale de SQLite.
 /// </summary>
-/// <remarks>
-/// Los Pokémon salen de PokéAPI para que lleguen con sprites y estadísticas base
-/// reales. Si PokéAPI no responde se sirve la copia local, que deja la aplicación
-/// utilizable aunque sin imágenes.
-/// </remarks>
 [ApiController]
 [Route("api/catalog")]
 [Produces("application/json")]
 public class CatalogController : ControllerBase
 {
-    private readonly IPokemonExternalService _pokeApi;
+    private readonly IPokemonExternalService _catalog;
     private readonly ILocalDataCatalog _localCatalog;
+    private readonly ICatalogSeedStatus _seedStatus;
     private readonly ILogger<CatalogController> _logger;
 
     public CatalogController(
-        IPokemonExternalService pokeApi,
+        IPokemonExternalService catalog,
         ILocalDataCatalog localCatalog,
+        ICatalogSeedStatus seedStatus,
         ILogger<CatalogController> logger)
     {
-        _pokeApi = pokeApi;
+        _catalog = catalog;
         _localCatalog = localCatalog;
+        _seedStatus = seedStatus;
         _logger = logger;
     }
 
-    /// <summary>Los 151 Pokémon de Kanto con estadísticas base y sprites.</summary>
+    /// <summary>Estado del seeding del catálogo (útil en el primer arranque en la nube).</summary>
+    [HttpGet("status")]
+    public IActionResult GetStatus() => Ok(new
+    {
+        ready = _seedStatus.IsReady,
+        running = _seedStatus.IsRunning,
+        failed = _seedStatus.HasFailed,
+        message = _seedStatus.Message,
+        pokemonLoaded = _seedStatus.PokemonLoaded,
+        pokemonTarget = _seedStatus.PokemonTarget,
+        progressPercent = Math.Round(_seedStatus.ProgressPercent, 1)
+    });
+
     [HttpGet("pokemon")]
     [ProducesResponseType(typeof(IReadOnlyList<PokemonCatalogEntryDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetPokemon(CancellationToken cancellationToken)
     {
+        if (!_seedStatus.IsReady)
+        {
+            return CatalogNotReady();
+        }
+
         try
         {
-            var pokemon = await _pokeApi.GetGenerationOnePokemonWithStatsAsync(cancellationToken);
-            return Ok(pokemon);
+            return Ok(await _catalog.GetPokemonWithStatsAsync(cancellationToken));
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        catch (Exception ex)
         {
-            _logger.LogWarning(ex, "PokéAPI no respondió; se sirve el catálogo local sin sprites.");
+            _logger.LogError(ex, "Error leyendo Pokémon desde SQLite; se usa respaldo local.");
             return Ok(_localCatalog.GetPokemon());
         }
     }
 
-    /// <summary>Movimientos disponibles, con sus valores de combate en español.</summary>
     [HttpGet("moves")]
     [ProducesResponseType(typeof(IReadOnlyList<MoveCatalogEntryDto>), StatusCodes.Status200OK)]
-    public IActionResult GetMoves() => Ok(_localCatalog.GetMoves());
+    public async Task<IActionResult> GetMoves(CancellationToken cancellationToken)
+    {
+        if (_seedStatus.IsReady)
+        {
+            try
+            {
+                return Ok(await _catalog.GetMovesAsync(cancellationToken));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudieron leer movimientos de SQLite; respaldo local.");
+            }
+        }
 
-    /// <summary>Nombres de las habilidades de los Pokémon de Kanto.</summary>
+        return Ok(_localCatalog.GetMoves());
+    }
+
     [HttpGet("abilities")]
     [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetAbilities(CancellationToken cancellationToken)
     {
-        try
-        {
-            var abilities = await _pokeApi.GetGenerationOneAbilitiesAsync(cancellationToken);
-            return Ok(abilities.Select(a => a.DisplayName).ToList());
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        {
-            _logger.LogWarning(ex, "PokéAPI no respondió al pedir habilidades.");
-            return Ok(Array.Empty<string>());
-        }
+        if (!_seedStatus.IsReady) return CatalogNotReady();
+
+        var abilities = await _catalog.GetAbilitiesAsync(cancellationToken);
+        return Ok(abilities.Select(a => a.DisplayName).ToList());
     }
 
-    /// <summary>Nombres de los objetos introducidos en la Generación 1.</summary>
     [HttpGet("items")]
     [ProducesResponseType(typeof(IReadOnlyList<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status503ServiceUnavailable)]
     public async Task<IActionResult> GetItems(CancellationToken cancellationToken)
     {
-        try
-        {
-            var items = await _pokeApi.GetGenerationOneItemsAsync(cancellationToken);
-            return Ok(items.Select(i => i.DisplayName).ToList());
-        }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
-        {
-            _logger.LogWarning(ex, "PokéAPI no respondió al pedir objetos.");
-            return Ok(Array.Empty<string>());
-        }
+        if (!_seedStatus.IsReady) return CatalogNotReady();
+
+        var items = await _catalog.GetItemsAsync(cancellationToken);
+        return Ok(items.Select(i => i.DisplayName).ToList());
     }
+
+    private ObjectResult CatalogNotReady() => StatusCode(
+        StatusCodes.Status503ServiceUnavailable,
+        new
+        {
+            ready = false,
+            running = _seedStatus.IsRunning,
+            failed = _seedStatus.HasFailed,
+            message = _seedStatus.Message,
+            progressPercent = Math.Round(_seedStatus.ProgressPercent, 1)
+        });
 }

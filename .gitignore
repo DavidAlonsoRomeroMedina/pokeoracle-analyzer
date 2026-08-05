@@ -55,5 +55,8 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-## --- Generado al presentar (IP local de cada maquina) ---
-mostrar-qr.html
+## --- SQLite local / contenedor ---
+*.db
+*.db-shm
+*.db-wal
+**/Data/pokeoracle.db*

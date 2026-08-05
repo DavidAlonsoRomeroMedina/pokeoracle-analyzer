@@ -184,3 +184,33 @@ internal sealed record ItemGameIndex
     [JsonPropertyName("generation")]
     public NamedApiResource? Generation { get; init; }
 }
+
+internal sealed record MoveResponse
+{
+    [JsonPropertyName("id")]
+    public int Id { get; init; }
+
+    [JsonPropertyName("name")]
+    public string? Name { get; init; }
+
+    [JsonPropertyName("accuracy")]
+    public int? Accuracy { get; init; }
+
+    [JsonPropertyName("power")]
+    public int? Power { get; init; }
+
+    [JsonPropertyName("pp")]
+    public int? Pp { get; init; }
+
+    [JsonPropertyName("type")]
+    public NamedApiResource? Type { get; init; }
+
+    [JsonPropertyName("damage_class")]
+    public NamedApiResource? DamageClass { get; init; }
+
+    [JsonPropertyName("names")]
+    public List<LocalizedName>? Names { get; init; }
+
+    [JsonPropertyName("effect_entries")]
+    public List<EffectEntry>? EffectEntries { get; init; }
+}

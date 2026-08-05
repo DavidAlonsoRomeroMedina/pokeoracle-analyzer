@@ -3,48 +3,62 @@ using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using PokeOracle.Application.Interfaces;
 using PokeOracle.Application.Services;
-using PokeOracle.Infrastructure.Persistence;
+using PokeOracle.Infrastructure.Catalog;
 using PokeOracle.Infrastructure.Data;
+using PokeOracle.Infrastructure.Persistence;
 using PokeOracle.Infrastructure.PokeApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    // El cliente trabaja con los enums en texto ("Fire", "Burn"). Sin esto el
-    // modelo se rechaza con 400 al crear una batalla.
+    // El cliente trabaja con los enums en texto ("Fire", "Burn").
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseInMemoryDatabase("PokeOracleDb"));
+// SQLite: ruta configurable (en Docker conviene /data/pokeoracle.db con volumen).
+var connectionString = builder.Configuration.GetConnectionString("PokeOracle")
+    ?? "Data Source=Data/pokeoracle.db";
+
+var sqlitePath = connectionString.Replace("Data Source=", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
+if (!string.IsNullOrWhiteSpace(sqlitePath) && !sqlitePath.StartsWith(':'))
+{
+    var directory = Path.GetDirectoryName(Path.GetFullPath(sqlitePath));
+    if (!string.IsNullOrWhiteSpace(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
+}
+
+builder.Services.AddDbContext<AppDbContext>(opt => opt.UseSqlite(connectionString));
 builder.Services.AddScoped<IBattleRepository, BattleRepository>();
 builder.Services.AddScoped<IDamageCalculator, DamageCalculator>();
 builder.Services.AddScoped<ExpectiminimaxService>();
-builder.Services.AddScoped<PokeOracleDataSeeder>();
 
-// --- Catálogo externo de Generación 1 (PokéAPI) ---
 var pokeApiOptions = builder.Configuration
     .GetSection(PokeApiOptions.SectionName)
     .Get<PokeApiOptions>() ?? new PokeApiOptions();
 
 builder.Services.AddSingleton(pokeApiOptions);
+builder.Services.AddSingleton<CatalogSeedStatus>();
+builder.Services.AddSingleton<ICatalogSeedStatus>(sp => sp.GetRequiredService<CatalogSeedStatus>());
 
 builder.Services.AddHttpClient(PokeApiOptions.HttpClientName, client =>
 {
     client.BaseAddress = new Uri(pokeApiOptions.BaseAddress);
-    client.Timeout = TimeSpan.FromSeconds(pokeApiOptions.RequestTimeoutSeconds);
-    // PokéAPI responde 403 a clientes que no se identifican.
+    client.Timeout = TimeSpan.FromSeconds(Math.Max(30, pokeApiOptions.RequestTimeoutSeconds));
     client.DefaultRequestHeaders.UserAgent.ParseAdd(pokeApiOptions.UserAgent);
     client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 });
 
-// Singleton: el catálogo de Kanto es inmutable y se cachea en memoria tras la primera descarga.
-builder.Services.AddSingleton<IPokemonExternalService, PokeApiHttpClient>();
-
-// Respaldo local para movimientos y para cuando PokéAPI no responde.
+builder.Services.AddSingleton<PokeApiDownloader>();
+// Catálogo runtime: solo SQLite (PokéAPI solo en el HostedService de seeding).
+builder.Services.AddSingleton<IPokemonExternalService, SqlitePokemonCatalogService>();
+// Respaldo local de movimientos mientras el seeding no ha terminado / para combate.
 builder.Services.AddSingleton<ILocalDataCatalog, JsonLocalDataCatalog>();
+builder.Services.AddHostedService<PokeApiCatalogSeederHostedService>();
 
 builder.Services.AddCors(options =>
 {
@@ -56,13 +70,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Invocar el Seeder al iniciar la WebApi
-using (var scope = app.Services.CreateScope())
-{
-    var seeder = scope.ServiceProvider.GetRequiredService<PokeOracleDataSeeder>();
-    seeder.SeedData(app.Environment.ContentRootPath);
-}
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -70,14 +77,12 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors();
-// La web app React se sirve desde wwwroot (npm run build:dotnet).
 app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 
 app.MapControllers();
-// Cualquier ruta que no sea API cae en la SPA.
 app.MapFallbackToFile("index.html");
 
 app.Run();

@@ -26,4 +26,4 @@ jobs:
       run: dotnet build PokeOracle-Backend/PokeOracle.slnx --no-restore
 
     - name: Ejecutar Pruebas Unitarias
-      run: dotnet test PokeOracle-Backend/PokeOracle.Tests/PokeOracle.Tests.csproj --no-build --verbosity normal
+      run: dotnet test PokeOracle-Backend/PokeOracle.Tests/PokeOracle.Tests.csproj --verbosity normal

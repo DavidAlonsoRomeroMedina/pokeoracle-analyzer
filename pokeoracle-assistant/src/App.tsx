@@ -450,7 +450,7 @@ export default function App() {
             <h1 className="text-base md:text-lg font-display font-bold tracking-wide text-white leading-none">
               PokeOracle
             </h1>
-            <p className="text-[10px] uppercase tracking-[0.22em] text-white/45 mt-1">Randomlocke · Kanto Deck</p>
+            <p className="text-[10px] uppercase tracking-[0.22em] text-white/45 mt-1">Randomlocke · National Dex</p>
           </div>
         </div>
 
@@ -537,7 +537,7 @@ export default function App() {
                 <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Motor</p>
                 <p className="text-[11px] text-white/60 leading-relaxed">
                   Expectiminimax · profundidad 3<br />
-                  Catálogo Gen 1 con sprites vivos
+                  Catálogo nacional (1025) con sprites vivos
                 </p>
               </div>
             </aside>
@@ -571,7 +571,7 @@ export default function App() {
                       <div className="inline-block px-3 py-1.5 rounded-full bg-rose-500/20 border border-rose-300/30 text-rose-100 text-[9px] font-mono uppercase tracking-widest mb-3">CONSTRUCCIÓN SIN LIMITACIONES</div>
                       <h2 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-white leading-none mb-2">Editor de Estadísticas Reales y Atributos</h2>
                       <p className="text-white/55 text-xs italic max-w-xl">
-                        PROHIBIDO hardcodear equipos. Selecciona Pokémon de Kanto, asigna estadísticas reales (con EVs/IVs ya calculados de tu emulador), define Habilidad de Gen 3, Objeto Equipado y sus 4 ataques correspondientes.
+                        PROHIBIDO hardcodear equipos. Selecciona cualquier Pokémon del dex nacional, asigna estadísticas reales (con EVs/IVs ya calculados de tu emulador), define Habilidad, Objeto Equipado y sus 4 ataques correspondientes.
                       </p>
                     </div>
 
@@ -633,9 +633,9 @@ export default function App() {
                               </div>
                             </div>
 
-                            {/* Dropdown 151 Kanto Species */}
+                            {/* Dropdown National Dex */}
                             <div className="space-y-1">
-                              <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Especie Pokémon (151 Kanto)</label>
+                              <label className="text-[9px] uppercase tracking-wider text-white/55 font-bold">Especie Pokémon (Dex nacional)</label>
                               <div className="flex items-center gap-3">
                                 <div className="bg-black/30 border border-white/15 p-1 shrink-0">
                                   <PokemonSprite name={currentEditingPokemon.name} src={spriteFor(currentEditingPokemon.name)} size="lg" />
