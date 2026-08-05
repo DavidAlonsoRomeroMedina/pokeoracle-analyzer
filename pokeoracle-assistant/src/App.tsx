@@ -4,39 +4,23 @@ import {
   Move,
   PokemonType,
   StatusEffect,
-  MoveCategory,
   SuggestionResult,
-  BattleSession,
   PokemonCatalogEntry
 } from './types';
-import { csharpCodebase, CSharpFile } from './csharpCode';
 import { PokemonSprite } from './PokemonSprite';
 import { PokemonBackground } from './PokemonBackground';
+import { parseShowdownTeam, showdownToParty } from './showdownParser';
+import { THEME_OPTIONS, ThemeId, loadStoredTheme, persistTheme } from './themes';
 import {
   Sparkles,
-  Play,
   RotateCcw,
-  Copy,
-  Check,
-  FileCode,
-  Folder,
-  ChevronRight,
-  Info,
   Sliders,
-  Plus,
-  Trash2,
-  Sword,
-  Shield,
-  Zap,
   Activity,
-  Award,
-  ChevronDown,
-  ExternalLink,
   BookOpen,
-  User,
-  HelpCircle,
-  TrendingUp,
-  X
+  X,
+  Upload,
+  Palette,
+  ChevronRight
 } from 'lucide-react';
 
 const TYPES_LIST: PokemonType[] = [
@@ -48,13 +32,21 @@ const TYPES_LIST: PokemonType[] = [
 const STATUS_LIST: StatusEffect[] = ['None', 'Paralysis', 'Poison', 'Burn', 'Sleep', 'Freeze'];
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<'simulator' | 'codebase'>('simulator');
-
   // --- Catalogs from API ---
   const [pokemonCatalog, setPokemonCatalog] = useState<PokemonCatalogEntry[]>([]);
   const [movesCatalog, setMovesCatalog] = useState<Move[]>([]);
   const [abilitiesCatalog, setAbilitiesCatalog] = useState<string[]>([]);
   const [itemsCatalog, setItemsCatalog] = useState<string[]>([]);
+
+  // --- Tema ---
+  const [theme, setTheme] = useState<ThemeId>(() => loadStoredTheme());
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // --- Importador Showdown ---
+  const [importOpen, setImportOpen] = useState(false);
+  const [importTarget, setImportTarget] = useState<'player' | 'rival'>('player');
+  const [importText, setImportText] = useState('');
+  const [importError, setImportError] = useState<string | null>(null);
 
   // Los equipos solo guardan el nombre de la especie, así que el sprite se
   // resuelve por nombre contra el catálogo.
@@ -115,11 +107,11 @@ export default function App() {
   // Battle session response state (HP, history log)
   const [battleHistory, setBattleHistory] = useState<string[]>([]);
 
-  // --- Codebase Viewer State ---
-  const [selectedProject, setSelectedProject] = useState<string>('PokeOracle.Domain');
-  const [selectedFile, setSelectedFile] = useState<CSharpFile>(csharpCodebase[0]);
-  const [searchCodeQuery, setSearchCodeQuery] = useState<string>('');
-  const [copiedFile, setCopiedFile] = useState<string | null>(null);
+  // Persistencia y aplicación del tema
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    persistTheme(theme);
+  }, [theme]);
 
   // Load catalogs on mount
   useEffect(() => {
@@ -421,27 +413,84 @@ export default function App() {
 
   const currentEditingPokemon = editingParty === 'player' ? playerParty[selectedSlotIndex] : rivalParty[selectedSlotIndex];
 
-  // Codebase filters
-  const filteredFiles = csharpCodebase.filter(
-    (file) =>
-      file.project === selectedProject &&
-      (searchCodeQuery === '' ||
-        file.path.toLowerCase().includes(searchCodeQuery.toLowerCase()) ||
-        file.content.toLowerCase().includes(searchCodeQuery.toLowerCase()))
-  );
-
-  const handleCopyCode = (text: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedFile(selectedFile.path);
-    setTimeout(() => setCopiedFile(null), 2000);
+  const openImportModal = (target: 'player' | 'rival') => {
+    setImportTarget(target);
+    setImportText('');
+    setImportError(null);
+    setImportOpen(true);
   };
 
+  const handleImportShowdown = () => {
+    const parsed = parseShowdownTeam(importText);
+    if (!parsed.ok) {
+      setImportError(parsed.error ?? 'Formato Showdown no válido.');
+      return;
+    }
+
+    const { party, warnings } = showdownToParty(
+      parsed.pokemon,
+      {
+        pokemon: pokemonCatalog,
+        moves: movesCatalog,
+        abilities: abilitiesCatalog,
+        items: itemsCatalog,
+      },
+      importTarget === 'player' ? playerParty : rivalParty
+    );
+
+    if (importTarget === 'player') {
+      setPlayerParty(party);
+      setEditingParty('player');
+    } else {
+      setRivalParty(party);
+      setEditingParty('rival');
+    }
+    setSelectedSlotIndex(0);
+    setImportOpen(false);
+    setImportError(null);
+
+    if (warnings.length > 0) {
+      window.alert(
+        `Equipo importado con avisos:\n\n• ${warnings.slice(0, 6).join('\n• ')}${
+          warnings.length > 6 ? `\n… y ${warnings.length - 6} más` : ''
+        }`
+      );
+    }
+  };
+
+  const renderPartyGrid = (party: Pokemon[], activeIdx: number) => (
+    <div className="grid grid-cols-3 gap-2">
+      {party.map((p, i) => (
+        <div
+          key={i}
+          title={`${p.name} (${p.hp}/${p.maxHp} HP)`}
+          className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
+            p.hp <= 0
+              ? 'bg-red-500/15 border-red-400/30'
+              : i === activeIdx
+                ? 'bg-rose-500/25 border-rose-300/50 shadow-lg shadow-rose-500/20'
+                : 'bg-white/5 border-white/10'
+          }`}
+        >
+          <PokemonSprite name={p.name} src={spriteFor(p.name)} size="sm" fainted={p.hp <= 0} />
+        </div>
+      ))}
+    </div>
+  );
+
   return (
-    <div className="relative flex flex-col h-screen w-full text-white/70 font-sans overflow-hidden">
+    <div
+      className="relative flex flex-col h-screen w-full font-sans overflow-hidden"
+      style={{ color: 'color-mix(in srgb, var(--color-text) 70%, transparent)' }}
+      data-theme={theme}
+    >
       <PokemonBackground />
 
       {/* Top Header */}
-      <header className="relative z-20 flex items-center justify-between px-5 md:px-8 py-4 border-b border-white/10 bg-[#0a0e17]/70 backdrop-blur-xl shrink-0">
+      <header
+        className="relative z-20 flex items-center justify-between px-5 md:px-8 py-4 border-b border-white/10 backdrop-blur-xl shrink-0"
+        style={{ background: 'var(--color-header)' }}
+      >
         <div className="flex items-center gap-4">
           <div className="w-11 h-11 bg-gradient-to-br from-rose-500 to-orange-400 text-white rounded-2xl flex items-center justify-center font-display font-bold text-sm shadow-lg shadow-rose-500/30 animate-rise">
             PO
@@ -454,37 +503,13 @@ export default function App() {
           </div>
         </div>
 
-        <nav className="flex items-center gap-2 p-1 rounded-2xl bg-white/5 border border-white/10">
-          <button
-            onClick={() => setActiveTab('simulator')}
-            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-              activeTab === 'simulator'
-                ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25'
-                : 'text-white/50 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Simulador
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab('codebase');
-              const domainFirst = csharpCodebase.find(f => f.project === 'PokeOracle.Domain');
-              if (domainFirst) setSelectedFile(domainFirst);
-            }}
-            className={`px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all ${
-              activeTab === 'codebase'
-                ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25'
-                : 'text-white/50 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            Código C#
-          </button>
-        </nav>
+        <div className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25">
+          Simulador
+        </div>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 flex overflow-hidden">
-        {activeTab === 'simulator' ? (
           <>
             {/* Side deck — estilo dashboard */}
             <aside className="relative z-10 w-72 p-4 flex flex-col gap-4 shrink-0 hidden lg:flex overflow-y-auto">
@@ -499,10 +524,44 @@ export default function App() {
                   <span className={`w-3 h-3 rounded-full ${sessionId ? 'bg-emerald-400 animate-pulse' : 'bg-amber-300 animate-pulse'}`} />
                 </div>
 
-                <div className="grid grid-cols-1 gap-2">
-                  <button type="button" className="btn-side flex items-center gap-2 px-3 py-2.5 bg-emerald-500/90 text-white text-xs">
+                <div className="grid grid-cols-1 gap-2 relative">
+                  <button
+                    type="button"
+                    onClick={() => setSettingsOpen((v) => !v)}
+                    className="btn-side flex items-center gap-2 px-3 py-2.5 bg-emerald-500/90 text-white text-xs"
+                  >
                     <Sliders className="w-4 h-4" /> Configuración
                   </button>
+                  {settingsOpen && (
+                    <div className="absolute left-0 right-0 top-full mt-2 z-30 glass-panel-strong p-3 space-y-2 shadow-2xl">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[10px] uppercase tracking-widest text-white/70 font-bold flex items-center gap-1.5">
+                          <Palette className="w-3.5 h-3.5" /> Tema visual
+                        </span>
+                        <button type="button" onClick={() => setSettingsOpen(false)} className="text-white/50 hover:text-white">
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {THEME_OPTIONS.map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => {
+                            setTheme(opt.id);
+                            setSettingsOpen(false);
+                          }}
+                          className={`w-full text-left px-3 py-2 rounded-xl border transition-all ${
+                            theme === opt.id
+                              ? 'bg-white/15 border-white/30 text-white'
+                              : 'bg-black/20 border-white/10 text-white/70 hover:bg-white/10'
+                          }`}
+                        >
+                          <div className="text-xs font-bold">{opt.label}</div>
+                          <div className="text-[10px] text-white/45 mt-0.5">{opt.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <button type="button" onClick={handleResetSession} className="btn-side flex items-center gap-2 px-3 py-2.5 bg-sky-500/90 text-white text-xs">
                     <RotateCcw className="w-4 h-4" /> Reiniciar
                   </button>
@@ -513,24 +572,31 @@ export default function App() {
               </div>
 
               <div className="glass-panel p-4 space-y-3 animate-rise" style={{ animationDelay: '0.08s' }}>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Tu plantel</p>
-                <div className="grid grid-cols-3 gap-2">
-                  {playerParty.map((p, i) => (
-                    <div
-                      key={i}
-                      title={`${p.name} (${p.hp}/${p.maxHp} HP)`}
-                      className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
-                        p.hp <= 0
-                          ? 'bg-red-500/15 border-red-400/30'
-                          : i === activePlayerIdx
-                            ? 'bg-rose-500/25 border-rose-300/50 shadow-lg shadow-rose-500/20'
-                            : 'bg-white/5 border-white/10'
-                      }`}
-                    >
-                      <PokemonSprite name={p.name} src={spriteFor(p.name)} size="sm" fainted={p.hp <= 0} />
-                    </div>
-                  ))}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Tu plantel</p>
+                  <button
+                    type="button"
+                    onClick={() => openImportModal('player')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-[9px] font-bold uppercase tracking-wider text-white/80"
+                  >
+                    <Upload className="w-3 h-3" /> Importar
+                  </button>
                 </div>
+                {renderPartyGrid(playerParty, activePlayerIdx)}
+              </div>
+
+              <div className="glass-panel p-4 space-y-3 animate-rise" style={{ animationDelay: '0.11s' }}>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Plantel rival</p>
+                  <button
+                    type="button"
+                    onClick={() => openImportModal('rival')}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-[9px] font-bold uppercase tracking-wider text-white/80"
+                  >
+                    <Upload className="w-3 h-3" /> Importar
+                  </button>
+                </div>
+                {renderPartyGrid(rivalParty, activeRivalIdx)}
               </div>
 
               <div className="glass-panel p-4 space-y-2 animate-rise" style={{ animationDelay: '0.14s' }}>
@@ -578,18 +644,28 @@ export default function App() {
                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
                       {/* Left Side: Slots selection */}
                       <div className="xl:col-span-5 space-y-4">
-                        <div className="flex bg-black/30 p-1 rounded-2xl border border-white/10 text-[10px] font-bold uppercase tracking-wider">
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-1 bg-black/30 p-1 rounded-2xl border border-white/10 text-[10px] font-bold uppercase tracking-wider">
+                            <button
+                              onClick={() => { setEditingParty('player'); setSelectedSlotIndex(0); }}
+                              className={`flex-1 py-1.5 text-center ${editingParty === 'player' ? 'bg-white/15 text-white shadow-sm' : 'text-white/50'}`}
+                            >
+                              Tu Equipo
+                            </button>
+                            <button
+                              onClick={() => { setEditingParty('rival'); setSelectedSlotIndex(0); }}
+                              className={`flex-1 py-1.5 text-center ${editingParty === 'rival' ? 'bg-white/15 text-white shadow-sm' : 'text-white/50'}`}
+                            >
+                              Equipo Rival
+                            </button>
+                          </div>
                           <button
-                            onClick={() => { setEditingParty('player'); setSelectedSlotIndex(0); }}
-                            className={`flex-1 py-1.5 text-center ${editingParty === 'player' ? 'bg-white/15 text-white shadow-sm' : 'text-white/50'}`}
+                            type="button"
+                            onClick={() => openImportModal(editingParty)}
+                            className="inline-flex items-center gap-1 px-2.5 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-[9px] font-bold uppercase tracking-wider text-white/80 shrink-0"
+                            title="Importar formato Showdown"
                           >
-                            Tu Equipo
-                          </button>
-                          <button
-                            onClick={() => { setEditingParty('rival'); setSelectedSlotIndex(0); }}
-                            className={`flex-1 py-1.5 text-center ${editingParty === 'rival' ? 'bg-white/15 text-white shadow-sm' : 'text-white/50'}`}
-                          >
-                            Equipo Rival
+                            <Upload className="w-3.5 h-3.5" /> Importar
                           </button>
                         </div>
 
@@ -805,13 +881,13 @@ export default function App() {
                       </p>
                     </div>
 
-                    <div className="bg-slate-50 p-6 rounded-2xl flex items-center gap-5 border border-slate-100">
-                      <div className="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold">
+                    <div className="advice-card p-6 flex items-center gap-5">
+                      <div className="w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center font-bold shrink-0">
                         <Sparkles className="w-5 h-5" />
                       </div>
                       <div>
-                        <span className="text-[9px] uppercase font-mono tracking-widest text-white/45 block font-bold">Abridor Sugerido</span>
-                        <p className="text-xl font-bold tracking-tight text-white uppercase mt-0.5">{predictedLead}</p>
+                        <span className="advice-label text-[9px] uppercase font-mono tracking-widest block font-bold">Abridor Sugerido</span>
+                        <p className="advice-title text-xl font-bold tracking-tight uppercase mt-0.5 text-slate-800">{predictedLead}</p>
                       </div>
                     </div>
 
@@ -948,31 +1024,30 @@ export default function App() {
                     ) : (
                       /* ORACLE SUGGESTION COMPONENT */
                       aiSuggestion && (
-                        <div className="bg-[#f3f4f6] p-5 border border-white/15 relative">
+                        <div className="advice-card p-5 relative">
                           <div className="flex justify-between items-center mb-2">
-                            <span className="text-[9px] font-mono uppercase bg-rose-500 text-white px-2 py-0.5 tracking-wider font-bold">
+                            <span className="text-[9px] font-mono uppercase bg-rose-500 text-white px-2 py-0.5 tracking-wider font-bold rounded">
                               PokeOracle Engine // Confianza: {aiSuggestion.confidence}%
                             </span>
                           </div>
 
-                          <h3 className="text-3xl md:text-4xl font-display font-bold tracking-tight text-white mb-2">
+                          <h3 className="advice-title text-3xl md:text-4xl font-display font-bold tracking-tight mb-2 text-slate-800">
                             Sugerencia: {aiSuggestion.recommendedAction === 'Move' ? (
-                              <>Usar <span className="font-extrabold italic text-white">{aiSuggestion.moveName}</span></>
+                              <>Usar <span className="font-extrabold italic">{aiSuggestion.moveName}</span></>
                             ) : (
-                              <>Cambiar a <span className="font-extrabold italic text-white">{aiSuggestion.switchPokemonName}</span></>
+                              <>Cambiar a <span className="font-extrabold italic">{aiSuggestion.switchPokemonName}</span></>
                             )}
                           </h3>
-                          <p className="text-xs text-white/70 leading-relaxed max-w-3xl mb-4 italic">
+                          <p className="advice-body text-xs leading-relaxed max-w-3xl mb-4 italic">
                             {aiSuggestion.explanation}
                           </p>
 
-                          {/* Expectiminimax pathways dropdown */}
-                          <div className="border-t border-white/20 pt-3">
-                            <span className="text-[9px] uppercase tracking-wider text-white/55 font-bold block mb-1.5">Árbol de Expectación de Daño (Simulación Depth 3)</span>
-                            <div className="bg-white/10 p-3 max-h-[110px] overflow-y-auto space-y-1 font-mono text-[10px] text-white/55 border border-white/15">
+                          <div className="border-t border-slate-300/60 pt-3">
+                            <span className="advice-label text-[9px] uppercase tracking-wider font-bold block mb-1.5">Árbol de Expectación de Daño (Simulación Depth 3)</span>
+                            <div className="bg-white/60 p-3 max-h-[110px] overflow-y-auto space-y-1 font-mono text-[10px] text-slate-700 border border-slate-200 rounded-xl">
                               {aiSuggestion.simulatedPaths.map((p, i) => (
                                 <div key={i} className="flex gap-2">
-                                  <span className="text-white/45 font-bold">[{i+1}]</span>
+                                  <span className="text-slate-500 font-bold">[{i+1}]</span>
                                   <span>{p}</span>
                                 </div>
                               ))}
@@ -1372,12 +1447,12 @@ export default function App() {
                         <Activity className="w-3.5 h-3.5 text-white/45" />
                         Registro de Combate Reciente (Stateless Logging)
                       </h4>
-                      <div className="bg-[#f9fafb] p-4 font-mono text-[11px] text-white/70 space-y-1.5 max-h-[150px] overflow-y-auto border border-white/10">
+                      <div className="advice-card p-4 font-mono text-[11px] space-y-1.5 max-h-[150px] overflow-y-auto">
                         {battleHistory.length === 0 ? (
-                          <div className="text-white/40 italic">No hay registros registrados.</div>
+                          <div className="advice-label italic">No hay registros registrados.</div>
                         ) : (
                           battleHistory.map((log, idx) => (
-                            <div key={idx} className="border-l-2 border-slate-300 pl-2 py-0.5">{log}</div>
+                            <div key={idx} className="advice-title border-l-2 border-slate-400 pl-2 py-0.5">{log}</div>
                           ))
                         )}
                       </div>
@@ -1388,127 +1463,73 @@ export default function App() {
               )}
             </section>
           </>
-        ) : (
-          /* CODEBASE VIEW WITH SHINY MINIMALISM */
-          <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-white/10">
-            
-            {/* Project Tree */}
-            <aside className="w-72 border-r border-white/10 p-6 flex flex-col justify-between shrink-0 bg-[#fafafa] overflow-y-auto">
-              <div className="space-y-6">
-                <div>
-                  <label className="text-[9px] uppercase tracking-widest text-white/40 mb-1.5 block font-bold">Clean Architecture</label>
-                  <h3 className="text-sm font-bold text-white tracking-tight">PokeOracle C# .NET 8</h3>
-                  <p className="text-[11px] text-white/50 mt-1 leading-relaxed">
-                    Estructura desacoplada y modular con el patrón Strategy y base de datos en memoria.
-                  </p>
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest block font-bold">Proyectos C#</span>
-                  <div className="space-y-1">
-                    {['PokeOracle.Domain', 'PokeOracle.Application', 'PokeOracle.Infrastructure', 'PokeOracle.WebApi'].map((proj) => (
-                      <button
-                        key={proj}
-                        onClick={() => {
-                          setSelectedProject(proj);
-                          const firstFile = csharpCodebase.find(f => f.project === proj);
-                          if (firstFile) setSelectedFile(firstFile);
-                        }}
-                        className={`w-full text-left px-3 py-2 text-xs font-semibold uppercase tracking-wider transition-all flex justify-between items-center border ${
-                          selectedProject === proj
-                            ? 'bg-emerald-500 text-white border-emerald-400'
-                            : 'bg-white/10 hover:bg-white/10 text-white/80 border-white/15'
-                        }`}
-                      >
-                        <span className="truncate">{proj}</span>
-                        <Folder className="w-3.5 h-3.5 opacity-70 shrink-0 ml-1" />
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest block font-bold">Buscar en Código</span>
-                  <input
-                    type="text"
-                    placeholder="Ej. Strategy, EF Core..."
-                    value={searchCodeQuery}
-                    onChange={(e) => setSearchCodeQuery(e.target.value)}
-                    className="w-full px-3 py-2 text-xs bg-black/30 border border-white/15 placeholder-white/30 focus:outline-none font-mono rounded-xl"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="text-[9px] text-white/40 font-mono uppercase tracking-widest block font-bold">Archivos</span>
-                  <div className="space-y-1 max-h-[220px] overflow-y-auto pr-2">
-                    {filteredFiles.map((file) => (
-                      <button
-                        key={file.path}
-                        onClick={() => setSelectedFile(file)}
-                        className={`w-full text-left px-3 py-1.5 text-xs font-mono transition-all flex items-center gap-2 border ${
-                          selectedFile.path === file.path && selectedFile.project === file.project
-                            ? 'bg-white/15 text-white font-bold border-white/15'
-                            : 'hover:bg-white/10 text-white/50 border-transparent bg-transparent'
-                        }`}
-                      >
-                        <FileCode className="w-3.5 h-3.5 text-white/40 shrink-0" />
-                        <span className="truncate">{file.path}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-white/10 text-[10px] text-white/40 font-mono space-y-1 leading-relaxed">
-                <div className="font-bold text-white/80 uppercase tracking-widest text-[9px] mb-1">Dependencias:</div>
-                <div>Domain ─── Sin dependencias</div>
-                <div>Application ─── Domain</div>
-                <div>Infrastructure ─── Application & Domain</div>
-                <div>WebApi ─── Application & Infra</div>
-              </div>
-            </aside>
-
-            {/* Code Output Screen */}
-            <div className="flex-1 flex flex-col bg-[#0b0f19] text-white/70 overflow-hidden">
-              <div className="border-b border-white/10 px-6 py-4 flex justify-between items-center bg-black/40 backdrop-blur-xl shrink-0">
-                <div className="flex items-center gap-2 font-mono text-xs">
-                  <span className="text-white/55">{selectedFile.project}/</span>
-                  <span className="text-white/70 font-bold">{selectedFile.path}</span>
-                </div>
-
-                <button
-                  onClick={() => handleCopyCode(selectedFile.content)}
-                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white/70 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 transition-all rounded-2xl"
-                >
-                  {copiedFile === selectedFile.path ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" /> Copiado
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" /> Copiar C#
-                    </>
-                  )}
-                </button>
-              </div>
-
-              <div className="flex-1 p-6 overflow-auto font-mono text-xs leading-relaxed bg-[#060910]">
-                <pre className="whitespace-pre">
-                  <code>{selectedFile.content}</code>
-                </pre>
-              </div>
-
-              <div className="bg-[#111622] border-t border-slate-950 p-3 text-[9px] font-mono text-white/55 flex justify-between shrink-0 uppercase tracking-widest">
-                <span>Plataforma: .NET 8.0</span>
-                <span>Arquitectura Limpia y Desacoplada</span>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
+      {/* Modal Importar Showdown */}
+      {importOpen && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="import-title">
+          <div className="modal-panel space-y-4">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 id="import-title" className="text-lg font-display font-bold text-white">
+                  Importar equipo Showdown
+                </h2>
+                <p className="text-xs text-white/55 mt-1">
+                  Pega el texto exportado de Pokémon Showdown para el{' '}
+                  <span className="font-bold text-white/80">
+                    {importTarget === 'player' ? 'plantel aliado' : 'plantel rival'}
+                  </span>
+                  .
+                </p>
+              </div>
+              <button type="button" onClick={() => setImportOpen(false)} className="text-white/50 hover:text-white p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <textarea
+              value={importText}
+              onChange={(e) => {
+                setImportText(e.target.value);
+                setImportError(null);
+              }}
+              rows={14}
+              spellCheck={false}
+              placeholder={`Charizard @ Leftovers\nAbility: Blaze\nEVs: 252 SpA / 4 SpD / 252 Spe\nTimid Nature\n- Flamethrower\n- Air Slash\n- Focus Blast\n- Roost\n\nSnorlax @ Leftovers\n...`}
+              className="w-full font-mono text-xs leading-relaxed resize-y min-h-[220px]"
+            />
+
+            {importError && (
+              <div className="text-xs text-rose-200 bg-rose-500/15 border border-rose-400/30 rounded-xl px-3 py-2">
+                {importError}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={() => setImportOpen(false)}
+                className="px-4 py-2.5 btn-ghost text-xs font-bold uppercase tracking-wider"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={handleImportShowdown}
+                className="flex-1 py-2.5 btn-accent text-xs font-bold uppercase tracking-wider"
+              >
+                Aplicar al equipo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Footer */}
-      <footer className="border-t border-white/10 py-3.5 px-8 text-[10px] text-white/40 flex flex-col sm:flex-row justify-between items-center gap-2 bg-[#0a0e17]/70 backdrop-blur-xl shrink-0 font-mono uppercase tracking-wider">
+      <footer
+        className="border-t border-white/10 py-3.5 px-8 text-[10px] text-white/40 flex flex-col sm:flex-row justify-between items-center gap-2 backdrop-blur-xl shrink-0 font-mono uppercase tracking-wider"
+        style={{ background: 'var(--color-header)' }}
+      >
         <span>© 2026 PokeOracle Studio</span>
         <div className="flex gap-4">
           <span>Heurística: Expectiminimax Depth 3</span>

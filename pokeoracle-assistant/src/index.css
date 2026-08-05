@@ -5,7 +5,12 @@
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
   --font-display: "Oxanium", "Outfit", sans-serif;
   --font-mono: "Oxanium", ui-monospace, monospace;
+}
 
+/* --- Temas (CSS Custom Properties) --- */
+:root,
+[data-theme="kanto"] {
+  color-scheme: dark;
   --color-ink: #0a0e17;
   --color-ink-soft: #121826;
   --color-panel: rgba(18, 24, 38, 0.72);
@@ -16,10 +21,92 @@
   --color-accent-2: #f59e0b;
   --color-accent-3: #22c55e;
   --color-accent-4: #38bdf8;
+  --color-text: #f8fafc;
+  --color-text-muted: rgba(248, 250, 252, 0.55);
+  --color-grad-1: rgba(239, 68, 68, 0.22);
+  --color-grad-2: rgba(56, 189, 248, 0.16);
+  --color-grad-3: rgba(34, 197, 94, 0.12);
+  --color-btn-grad-a: #ef4444;
+  --color-btn-grad-b: #f97316;
+  --color-header: rgba(10, 14, 23, 0.7);
+  --color-advice-card: #f8fafc;
+  --color-advice-text: #1e293b;
+  --color-advice-muted: #475569;
 }
 
-:root {
+[data-theme="amoled"] {
   color-scheme: dark;
+  --color-ink: #000000;
+  --color-ink-soft: #0a0a0a;
+  --color-panel: rgba(12, 12, 12, 0.92);
+  --color-panel-strong: rgba(8, 8, 8, 0.96);
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-line-strong: rgba(255, 255, 255, 0.22);
+  --color-accent: #ff2d55;
+  --color-accent-2: #0a84ff;
+  --color-accent-3: #30d158;
+  --color-accent-4: #64d2ff;
+  --color-text: #f5f5f7;
+  --color-text-muted: rgba(245, 245, 247, 0.55);
+  --color-grad-1: rgba(255, 45, 85, 0.28);
+  --color-grad-2: rgba(10, 132, 255, 0.2);
+  --color-grad-3: rgba(48, 209, 88, 0.12);
+  --color-btn-grad-a: #ff2d55;
+  --color-btn-grad-b: #bf5af2;
+  --color-header: rgba(0, 0, 0, 0.85);
+  --color-advice-card: #f5f5f7;
+  --color-advice-text: #111111;
+  --color-advice-muted: #3a3a3c;
+}
+
+[data-theme="gameboy"] {
+  color-scheme: dark;
+  --color-ink: #0f380f;
+  --color-ink-soft: #1a4a1a;
+  --color-panel: rgba(48, 98, 48, 0.85);
+  --color-panel-strong: rgba(15, 56, 15, 0.92);
+  --color-line: rgba(155, 188, 15, 0.35);
+  --color-line-strong: rgba(155, 188, 15, 0.55);
+  --color-accent: #9bbc0f;
+  --color-accent-2: #8bac0f;
+  --color-accent-3: #306230;
+  --color-accent-4: #0f380f;
+  --color-text: #c4d6a0;
+  --color-text-muted: rgba(155, 188, 15, 0.75);
+  --color-grad-1: rgba(155, 188, 15, 0.25);
+  --color-grad-2: rgba(139, 172, 15, 0.18);
+  --color-grad-3: rgba(48, 98, 48, 0.35);
+  --color-btn-grad-a: #9bbc0f;
+  --color-btn-grad-b: #8bac0f;
+  --color-header: rgba(15, 56, 15, 0.88);
+  --color-advice-card: #c4d6a0;
+  --color-advice-text: #0f380f;
+  --color-advice-muted: #306230;
+}
+
+[data-theme="synthwave"] {
+  color-scheme: dark;
+  --color-ink: #12061f;
+  --color-ink-soft: #1a0b2e;
+  --color-panel: rgba(42, 16, 74, 0.78);
+  --color-panel-strong: rgba(26, 11, 46, 0.9);
+  --color-line: rgba(255, 46, 199, 0.28);
+  --color-line-strong: rgba(0, 243, 255, 0.35);
+  --color-accent: #ff2ec7;
+  --color-accent-2: #00f3ff;
+  --color-accent-3: #b026ff;
+  --color-accent-4: #ff9f1c;
+  --color-text: #f5e6ff;
+  --color-text-muted: rgba(245, 230, 255, 0.6);
+  --color-grad-1: rgba(255, 46, 199, 0.28);
+  --color-grad-2: rgba(0, 243, 255, 0.18);
+  --color-grad-3: rgba(176, 38, 255, 0.2);
+  --color-btn-grad-a: #ff2ec7;
+  --color-btn-grad-b: #b026ff;
+  --color-header: rgba(18, 6, 31, 0.82);
+  --color-advice-card: #f3e8ff;
+  --color-advice-text: #2e1065;
+  --color-advice-muted: #5b21b6;
 }
 
 * {
@@ -36,17 +123,16 @@ body {
   margin: 0;
   font-family: var(--font-sans);
   background: var(--color-ink);
-  color: #f8fafc;
+  color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
-/* Tipografía de títulos */
 .font-display {
   font-family: var(--font-display);
 }
 
-/* Paneles glass sobre el fondo Pokémon */
 .glass-panel {
   background: var(--color-panel);
   border: 1px solid var(--color-line);
@@ -70,16 +156,15 @@ body {
   border-radius: 999px;
 }
 
-/* Botones de acción estilo dashboard */
 .btn-accent {
-  background: linear-gradient(135deg, #ef4444 0%, #f97316 100%);
+  background: linear-gradient(135deg, var(--color-btn-grad-a) 0%, var(--color-btn-grad-b) 100%);
   color: white;
   border: none;
   border-radius: 1rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
-  box-shadow: 0 8px 24px rgba(239, 68, 68, 0.28);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--color-accent) 35%, transparent);
 }
 
 .btn-accent:hover {
@@ -90,7 +175,7 @@ body {
 .btn-ghost {
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  color: #f8fafc;
+  color: var(--color-text);
   border-radius: 1rem;
   backdrop-filter: blur(10px);
   transition: background 0.15s ease, border-color 0.15s ease;
@@ -114,7 +199,26 @@ body {
   filter: brightness(1.08);
 }
 
-/* Controles de formulario sobre fondo oscuro */
+/* Tarjetas de consejo (Lead / sugerencia) — fondo claro, texto oscuro */
+.advice-card {
+  background: var(--color-advice-card);
+  color: var(--color-advice-text);
+  border: 1px solid color-mix(in srgb, var(--color-advice-text) 12%, transparent);
+  border-radius: 1.25rem;
+}
+
+.advice-card .advice-label {
+  color: var(--color-advice-muted);
+}
+
+.advice-card .advice-title {
+  color: var(--color-advice-text);
+}
+
+.advice-card .advice-body {
+  color: var(--color-advice-muted);
+}
+
 input,
 select,
 textarea {
@@ -126,21 +230,20 @@ select,
 textarea {
   background: rgba(0, 0, 0, 0.35) !important;
   border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  color: #f8fafc !important;
+  color: var(--color-text) !important;
   border-radius: 0.85rem !important;
 }
 
 input::placeholder,
 textarea::placeholder {
-  color: rgba(248, 250, 252, 0.4);
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
 }
 
 select option {
-  background: #121826;
-  color: #f8fafc;
+  background: var(--color-ink-soft);
+  color: var(--color-text);
 }
 
-/* Scrollbars discretas */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
@@ -159,7 +262,6 @@ select option {
   background: rgba(255, 255, 255, 0.3);
 }
 
-/* Entrada suave de paneles */
 @keyframes rise-in {
   from {
     opacity: 0;
@@ -187,4 +289,27 @@ select option {
 
 .animate-float {
   animation: float-soft 7s ease-in-out infinite;
+}
+
+/* Modal genérico */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.modal-panel {
+  width: min(560px, 100%);
+  max-height: min(85vh, 720px);
+  overflow: auto;
+  background: var(--color-panel-strong);
+  border: 1px solid var(--color-line-strong);
+  border-radius: 1.25rem;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+  padding: 1.25rem 1.35rem;
 }

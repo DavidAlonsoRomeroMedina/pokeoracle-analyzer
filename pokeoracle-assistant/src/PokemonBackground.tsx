@@ -10,19 +10,24 @@ const DECOR_SPRITES = [
 ] as const;
 
 /**
- * Fondo temático de la app: degradado oscuro, patrón de siluetas y
- * artwork oficial suave de Kanto para dar atmósfera sin tapar la UI.
+ * Fondo temático: usa variables CSS del tema activo para atmósfera.
  */
 export function PokemonBackground() {
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
-      {/* Base */}
-      <div className="absolute inset-0 bg-[#070b14]" />
+      <div className="absolute inset-0" style={{ background: 'var(--color-ink)' }} />
 
-      {/* Gradientes de atmósfera */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(239,68,68,0.22),_transparent_45%),radial-gradient(ellipse_at_bottom_right,_rgba(56,189,248,0.16),_transparent_40%),radial-gradient(ellipse_at_bottom_left,_rgba(34,197,94,0.12),_transparent_35%)]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `
+            radial-gradient(ellipse at top, var(--color-grad-1), transparent 45%),
+            radial-gradient(ellipse at bottom right, var(--color-grad-2), transparent 40%),
+            radial-gradient(ellipse at bottom left, var(--color-grad-3), transparent 35%)
+          `,
+        }}
+      />
 
-      {/* Patrón de siluetas (SVG inline, sin dependencia externa) */}
       <div
         className="absolute inset-0 opacity-[0.07]"
         style={{
@@ -31,7 +36,6 @@ export function PokemonBackground() {
         }}
       />
 
-      {/* Artwork flotante de Kanto */}
       {DECOR_SPRITES.map((sprite) => (
         <img
           key={sprite.id}
@@ -53,8 +57,13 @@ export function PokemonBackground() {
         />
       ))}
 
-      {/* Viñeta para legibilidad */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_transparent_30%,_rgba(7,11,20,0.75)_100%)]" />
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse at center, transparent 30%, color-mix(in srgb, var(--color-ink) 75%, transparent) 100%)',
+        }}
+      />
     </div>
   );
 }
@@ -62,19 +71,15 @@ export function PokemonBackground() {
 const SILHOUETTE_PATTERN = `
 <svg xmlns="http://www.w3.org/2000/svg" width="220" height="220" viewBox="0 0 220 220">
   <g fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Pokéball -->
     <circle cx="48" cy="48" r="22"/>
     <path d="M26 48h44"/>
     <circle cx="48" cy="48" r="6"/>
-    <!-- Pikachu-ish ears -->
     <path d="M120 70c8-28 18-34 22-34s6 10 2 28"/>
     <path d="M168 70c-8-28-18-34-22-34s-6 10-2 28"/>
     <ellipse cx="144" cy="88" rx="28" ry="24"/>
-    <!-- Squirtle shell -->
     <ellipse cx="60" cy="160" rx="26" ry="22"/>
     <path d="M42 160c6 10 30 10 36 0"/>
     <path d="M78 148c10 2 16 12 12 22"/>
-    <!-- Bulba bulb -->
     <path d="M150 150c-8-24 8-40 22-40 12 0 26 14 18 38"/>
     <ellipse cx="172" cy="172" rx="24" ry="18"/>
   </g>
