@@ -44,4 +44,9 @@ COPY docker-entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x /docker-entrypoint.sh
 
 EXPOSE 8080
+
+# Evitar FileSystemWatcher/inotify en contenedores con límites bajos de fds.
+ENV DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE=false
+ENV DOTNET_USE_POLLING_FILE_WATCHER=true
+
 ENTRYPOINT ["/docker-entrypoint.sh"]

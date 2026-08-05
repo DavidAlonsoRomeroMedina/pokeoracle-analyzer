@@ -10,6 +10,13 @@ using PokeOracle.Infrastructure.PokeApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Contenedores (Render/Docker) suelen agotar el límite de inotify; desactivar
+// FileSystemWatcher en fuentes JSON evita IOException / exit 139 al arrancar.
+foreach (var source in builder.Configuration.Sources.OfType<Microsoft.Extensions.Configuration.Json.JsonConfigurationSource>())
+{
+    source.ReloadOnChange = false;
+}
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
     // El cliente trabaja con los enums en texto ("Fire", "Burn").
