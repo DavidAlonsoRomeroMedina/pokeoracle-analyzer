@@ -33,6 +33,8 @@ import {
   PokedexModal,
   ProfileModal,
 } from './v15Panels';
+import { CommunityView } from './CommunityView';
+import { emptyParty, emptySlot, isSlotEmpty } from './partyUtils';
 import {
   Sparkles,
   RotateCcw,
@@ -46,6 +48,7 @@ import {
   User,
   Wand2,
   Globe,
+  Users,
 } from 'lucide-react';
 
 const TYPES_LIST: PokemonType[] = [
@@ -97,9 +100,10 @@ export default function App() {
   const spriteFor = (name?: string) => (name ? spriteByName.get(name.toLowerCase()) : undefined);
 
   // --- Battle Simulation State ---
+  const [mainView, setMainView] = useState<'simulator' | 'community'>('simulator');
   const [sessionId, setSessionId] = useState<string>('');
-  const [playerParty, setPlayerParty] = useState<Pokemon[]>([]);
-  const [rivalParty, setRivalParty] = useState<Pokemon[]>([]);
+  const [playerParty, setPlayerParty] = useState<Pokemon[]>(() => emptyParty());
+  const [rivalParty, setRivalParty] = useState<Pokemon[]>(() => emptyParty());
   const [currentStep, setCurrentStep] = useState<number>(1); // 1: Setup, 2: Predict Lead, 3: Active Turn Suggestion
   
   // Setup editor states
@@ -177,57 +181,9 @@ export default function App() {
         const items = await fetch('/api/catalog/items').then(r => r.json());
         setItemsCatalog(items);
 
-        // Pre-build empty templates for teams
-        const initialPlayer: Pokemon[] = Array.from({ length: 6 }, (_, i) => ({
-          name: i === 0 ? 'Charizard' : i === 1 ? 'Snorlax' : i === 2 ? 'Lapras' : i === 3 ? 'Jolteon' : i === 4 ? 'Alakazam' : 'Gardevoir',
-          types: i === 0 ? ['Fire', 'Flying'] : i === 1 ? ['Normal'] : i === 2 ? ['Water', 'Ice'] : i === 3 ? ['Electric'] : i === 4 ? ['Psychic'] : ['Psychic', 'Fairy'],
-          hp: i === 0 ? 153 : i === 1 ? 235 : i === 2 ? 205 : i === 3 ? 140 : i === 4 ? 130 : 143,
-          maxHp: i === 0 ? 153 : i === 1 ? 235 : i === 2 ? 205 : i === 3 ? 140 : i === 4 ? 130 : 143,
-          attack: i === 0 ? 104 : i === 1 ? 130 : i === 2 ? 105 : i === 3 ? 85 : i === 4 ? 70 : 85,
-          defense: i === 0 ? 98 : i === 1 ? 85 : i === 2 ? 100 : i === 3 ? 80 : i === 4 ? 65 : 85,
-          spAttack: i === 0 ? 129 : i === 1 ? 85 : i === 2 ? 105 : i === 3 ? 130 : i === 4 ? 155 : 145,
-          spDefense: i === 0 ? 105 : i === 1 ? 130 : i === 2 ? 115 : i === 3 ? 115 : i === 4 ? 105 : 135,
-          speed: i === 0 ? 120 : i === 1 ? 50 : i === 2 ? 80 : i === 3 ? 150 : i === 4 ? 140 : 100,
-          status: 'None',
-          ability: i === 0 ? 'Mar Llamas' : i === 1 ? 'Inmunidad' : i === 2 ? 'Absorbe Agua' : i === 3 ? 'Absorbe Electricidad' : i === 4 ? 'Foco Interno' : 'Sustituto',
-          heldItem: i === 0 ? 'Carbón' : i === 1 ? 'Restos' : i === 2 ? 'Lente de Agua' : i === 3 ? 'Imán' : i === 4 ? 'Cuchara Torcida' : 'Baya Ziuela',
-          moves: [
-            { name: 'Flamethrower', type: 'Fire', category: 'Special', power: 95, accuracy: 100, statusChance: 10, statusEffect: 'Burn', isFixedDamage: false, fixedDamageValue: 0 },
-            { name: 'Surf', type: 'Water', category: 'Special', power: 95, accuracy: 100, statusChance: 0, statusEffect: 'None', isFixedDamage: false, fixedDamageValue: 0 },
-            { name: 'Thunderbolt', type: 'Electric', category: 'Special', power: 95, accuracy: 100, statusChance: 10, statusEffect: 'Paralysis', isFixedDamage: false, fixedDamageValue: 0 },
-            { name: 'Body Slam', type: 'Normal', category: 'Physical', power: 85, accuracy: 100, statusChance: 30, statusEffect: 'Paralysis', isFixedDamage: false, fixedDamageValue: 0 }
-          ]
-        }));
-
-        const initialRival: Pokemon[] = Array.from({ length: 6 }, (_, i) => ({
-          name: i === 0 ? 'Blastoise' : i === 1 ? 'Gengar' : i === 2 ? 'Dragonite' : i === 3 ? 'Tyranitar' : i === 4 ? 'Metagross' : 'Clefable',
-          types: i === 0 ? ['Water'] : i === 1 ? ['Ghost', 'Poison'] : i === 2 ? ['Dragon', 'Flying'] : i === 3 ? ['Rock', 'Dark'] : i === 4 ? ['Steel', 'Psychic'] : ['Fairy'],
-          hp: i === 0 ? 154 : i === 1 ? 135 : i === 2 ? 166 : i === 3 ? 175 : i === 4 ? 155 : 170,
-          maxHp: i === 0 ? 154 : i === 1 ? 135 : i === 2 ? 166 : i === 3 ? 175 : i === 4 ? 155 : 170,
-          attack: i === 0 ? 103 : i === 1 ? 85 : i === 2 ? 154 : i === 3 ? 154 : i === 4 ? 155 : 90,
-          defense: i === 0 ? 120 : i === 1 ? 80 : i === 2 ? 115 : i === 3 ? 130 : i === 4 ? 150 : 93,
-          spAttack: i === 0 ? 105 : i === 1 ? 150 : i === 2 ? 120 : i === 3 ? 115 : i === 4 ? 115 : 115,
-          spDefense: i === 0 ? 125 : i === 1 ? 95 : i === 2 ? 120 : i === 3 ? 120 : i === 4 ? 110 : 110,
-          speed: i === 0 ? 98 : i === 1 ? 130 : i === 2 ? 100 : i === 3 ? 81 : i === 4 ? 90 : 80,
-          status: 'None',
-          ability: i === 0 ? 'Torrente' : i === 1 ? 'Levitación' : i === 2 ? 'Foco Interno' : i === 3 ? 'Bucle Arena' : i === 4 ? 'Cuerpo Puro' : 'Gran Encanto',
-          heldItem: i === 0 ? 'Restos' : i === 1 ? 'Banda Focus' : i === 2 ? 'Baya Safre' : i === 3 ? 'Cinturón Negro' : i === 4 ? 'Hierba Blanca' : 'Baya Ziuela',
-          moves: [
-            { name: 'Surf', type: 'Water', category: 'Special', power: 95, accuracy: 100, statusChance: 0, statusEffect: 'None', isFixedDamage: false, fixedDamageValue: 0 },
-            { name: 'Ice Beam', type: 'Ice', category: 'Special', power: 95, accuracy: 100, statusChance: 10, statusEffect: 'Freeze', isFixedDamage: false, fixedDamageValue: 0 },
-            { name: 'Earthquake', type: 'Ground', category: 'Physical', power: 100, accuracy: 100, statusChance: 0, statusEffect: 'None', isFixedDamage: false, fixedDamageValue: 0 },
-            { name: 'Psychic', type: 'Psychic', category: 'Special', power: 90, accuracy: 100, statusChance: 10, statusEffect: 'None', isFixedDamage: false, fixedDamageValue: 0 }
-          ]
-        }));
-
-        setPlayerParty(initialPlayer);
-        setRivalParty(initialRival);
-        setSeenSpecies((prev) =>
-          markSpeciesSeen(prev, [
-            ...initialPlayer.map((p) => p.name),
-            ...initialRival.map((p) => p.name),
-          ])
-        );
+        // Equipos vacíos al cargar: el usuario selecciona o importa.
+        setPlayerParty(emptyParty());
+        setRivalParty(emptyParty());
 
       } catch (e) {
         console.error("Error fetching catalogs", e);
@@ -237,12 +193,37 @@ export default function App() {
   }, []);
 
   const handleResetSession = () => {
+    setPlayerParty(emptyParty());
+    setRivalParty(emptyParty());
     setSessionId('');
     setCurrentStep(1);
     setPredictedLead('');
     setAiSuggestion(null);
     setBattleHistory([]);
     setIsSwitchRequired(false);
+    setFreeSwitchChoice(-1);
+    setRivalFreeSwitchChoice(-1);
+    setSelectedSlotIndex(0);
+    setEditingParty('player');
+    setSelectedPlayerLead(0);
+    setSelectedRivalLead(0);
+    setActivePlayerIdx(0);
+    setActiveRivalIdx(0);
+    setPlayerMoveUsed(0);
+    setPlayerSwitchTo(-1);
+    setRivalMoveUsed(0);
+    setRivalSwitchTo(-1);
+    setPlayerCrit(false);
+    setRivalCrit(false);
+    setPlayerMiss(false);
+    setRivalMiss(false);
+    setPlayerStatusApplied('None');
+    setRivalStatusApplied('None');
+    setPlayerSurvived(true);
+    setPlayerRealHp('');
+    setRivalSurvived(true);
+    setRivalRealHp('');
+    setMainView('simulator');
   };
 
   // Step 1: POST Setup
@@ -428,6 +409,12 @@ export default function App() {
     const item = { ...targetParty[slotIdx] };
 
     if (field === 'name') {
+      if (!value) {
+        targetParty[slotIdx] = emptySlot(slotIdx);
+        if (party === 'player') setPlayerParty(targetParty);
+        else setRivalParty(targetParty);
+        return;
+      }
       const matchSpecies = pokemonCatalog.find(p => p.name === value);
       if (matchSpecies) {
         item.name = matchSpecies.name;
@@ -539,21 +526,30 @@ export default function App() {
 
   const renderPartyGrid = (party: Pokemon[], activeIdx: number) => (
     <div className="grid grid-cols-3 gap-2">
-      {party.map((p, i) => (
-        <div
-          key={i}
-          title={`${p.name} (${p.hp}/${p.maxHp} HP)`}
-          className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
-            p.hp <= 0
-              ? 'bg-red-500/15 border-red-400/30'
-              : i === activeIdx
-                ? 'bg-rose-500/25 border-rose-300/50 shadow-lg shadow-rose-500/20'
-                : 'bg-white/5 border-white/10'
-          }`}
-        >
-          <PokemonSprite name={p.name} src={spriteFor(p.name)} size="sm" fainted={p.hp <= 0} />
-        </div>
-      ))}
+      {party.map((p, i) => {
+        const empty = isSlotEmpty(p);
+        return (
+          <div
+            key={i}
+            title={empty ? ui.emptySlot : `${p.name} (${p.hp}/${p.maxHp} HP)`}
+            className={`aspect-square rounded-2xl flex items-center justify-center border transition-all ${
+              empty
+                ? 'bg-white/[0.03] border-dashed border-white/15'
+                : p.hp <= 0
+                  ? 'bg-red-500/15 border-red-400/30'
+                  : i === activeIdx
+                    ? 'bg-rose-500/25 border-rose-300/50 shadow-lg shadow-rose-500/20'
+                    : 'bg-white/5 border-white/10'
+            }`}
+          >
+            {empty ? (
+              <span className="text-[9px] font-mono uppercase tracking-wider text-white/25">{i + 1}</span>
+            ) : (
+              <PokemonSprite name={p.name} src={spriteFor(p.name)} size="sm" fainted={p.hp <= 0} />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 
@@ -582,13 +578,34 @@ export default function App() {
           </div>
         </div>
 
-        <div className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25">
-          Simulador
+        <div className="flex items-center gap-2">
+          {mainView === 'simulator' && (
+            <button
+              type="button"
+              onClick={() => setMainView('community')}
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 text-[10px] font-bold uppercase tracking-widest text-sky-100 transition-colors lg:hidden"
+            >
+              <Users className="w-3.5 h-3.5" />
+              {ui.community}
+            </button>
+          )}
+          <div className="px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest bg-gradient-to-r from-rose-500 to-orange-500 text-white shadow-lg shadow-rose-500/25">
+            {mainView === 'community' ? ui.community : ui.simulator}
+          </div>
         </div>
       </header>
 
       {/* Main Container */}
       <main className="flex-1 flex overflow-hidden">
+        {mainView === 'community' ? (
+          <CommunityView
+            locale={locale}
+            pokemonCatalog={pokemonCatalog}
+            created={createdPokemon}
+            spriteFor={spriteFor}
+            onBack={() => setMainView('simulator')}
+          />
+        ) : (
           <>
             {/* Side deck — estilo dashboard */}
             <aside className="relative z-10 w-72 p-4 flex flex-col gap-4 shrink-0 hidden lg:flex overflow-y-auto">
@@ -641,6 +658,13 @@ export default function App() {
                     className="btn-side flex items-center gap-2 px-3 py-2.5 bg-rose-500/90 text-white text-xs"
                   >
                     <BookOpen className="w-4 h-4" /> {ui.pokedex}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMainView('community')}
+                    className="btn-side flex items-center gap-2 px-3 py-2.5 bg-sky-400/90 text-white text-xs"
+                  >
+                    <Users className="w-4 h-4" /> {ui.community}
                   </button>
                 </div>
               </div>
@@ -755,10 +779,16 @@ export default function App() {
                               }`}
                             >
                               <div className="flex items-center gap-2.5 min-w-0">
-                                <PokemonSprite name={pkm.name} src={spriteFor(pkm.name)} size="sm" />
+                                {!isSlotEmpty(pkm) ? (
+                                  <PokemonSprite name={pkm.name} src={spriteFor(pkm.name)} size="sm" />
+                                ) : (
+                                  <div className="w-8 h-8 rounded-xl border border-dashed border-white/20 bg-white/5" />
+                                )}
                                 <div className="truncate">
                                   <span className="text-[10px] font-mono mr-2 text-white/40">SLOT {idx + 1}</span>
-                                  <span className="font-bold text-xs uppercase tracking-tight">{pkm.name || 'Seleccionar...'}</span>
+                                  <span className="font-bold text-xs uppercase tracking-tight">
+                                    {isSlotEmpty(pkm) ? ui.emptySlot : pkm.name}
+                                  </span>
                                 </div>
                               </div>
                               <div className="flex items-center gap-1.5 font-mono text-[9px]">
@@ -795,6 +825,7 @@ export default function App() {
                                   onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'name', e.target.value)}
                                   className="w-full p-2.5 bg-black/30 border border-white/15 text-xs font-bold uppercase tracking-wider"
                                 >
+                                  <option value="">{ui.emptySlot}</option>
                                   {pokemonCatalog.map((p) => (
                                     <option key={p.name} value={p.name}>
                                       {String(p.pokedexNumber).padStart(3, '0')} · {p.name}
@@ -1563,6 +1594,7 @@ export default function App() {
               )}
             </section>
           </>
+        )}
       </main>
 
       {/* Modal Configuración & Tema Visual */}

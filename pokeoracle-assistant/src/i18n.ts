@@ -347,6 +347,30 @@ export type UiMessages = {
   created: string;
   likes: string;
   friends: string;
+  community: string;
+  backToSimulator: string;
+  publish: string;
+  randomBattle: string;
+  randomBattleSoon: string;
+  comingSoon: string;
+  communityIntro: string;
+  communityRoadmapLead: string;
+  roadmapFeedTitle: string;
+  roadmapFeedBody: string;
+  roadmapFriendsTitle: string;
+  roadmapFriendsBody: string;
+  roadmapBattlesTitle: string;
+  roadmapBattlesBody: string;
+  communityTeaserFoot: string;
+  directMessages: string;
+  noMessages: string;
+  noMessagesHint: string;
+  publishTitle: string;
+  publishHint: string;
+  publishSearch: string;
+  publishSimulated: string;
+  emptySlot: string;
+  simulator: string;
 };
 
 const UI: Record<LocaleId, UiMessages> = {
@@ -390,6 +414,30 @@ const UI: Record<LocaleId, UiMessages> = {
     created: 'Pokémon Created',
     likes: 'Likes Received',
     friends: 'Friends',
+    community: 'Community',
+    backToSimulator: 'Simulator',
+    publish: 'Post',
+    randomBattle: 'Random Battle',
+    randomBattleSoon: 'Random matchmaking — coming soon',
+    comingSoon: 'COMING SOON',
+    communityIntro: 'The social network for PokeOracle trainers is almost here.',
+    communityRoadmapLead: 'We are building the ultimate social network for PokeOracle trainers. Soon you will be able to:',
+    roadmapFeedTitle: 'Community Feed',
+    roadmapFeedBody: 'Post your created Pokémon, share teams and receive Likes.',
+    roadmapFriendsTitle: 'Friends & DMs',
+    roadmapFriendsBody: 'Add friends, send direct messages and chat in real time.',
+    roadmapBattlesTitle: '6v6 Multiplayer Battles',
+    roadmapBattlesBody: 'Challenge friends or join random battle rooms with your Pokédex teams.',
+    communityTeaserFoot: 'Stay tuned — the trainer network is warming up.',
+    directMessages: 'Direct Messages',
+    noMessages: 'No messages yet',
+    noMessagesHint: 'When friends arrive, your conversations will show up here.',
+    publishTitle: 'Compose post',
+    publishHint: 'Pick a Pokémon from your Pokédex (simulated preview).',
+    publishSearch: 'Search Pokémon…',
+    publishSimulated: 'Post simulated — community feed coming soon',
+    emptySlot: 'Empty',
+    simulator: 'Simulator',
   },
   'es-LA': {
     status: 'Estado',
@@ -431,6 +479,30 @@ const UI: Record<LocaleId, UiMessages> = {
     created: 'Pokémon Creados',
     likes: 'Me Gusta Recibidos',
     friends: 'Número de Amigos',
+    community: 'Comunidad',
+    backToSimulator: 'Simulador',
+    publish: 'Publicar',
+    randomBattle: 'Combate Random',
+    randomBattleSoon: 'Emparejamiento aleatorio — próximamente',
+    comingSoon: 'PRÓXIMAMENTE',
+    communityIntro: 'La red social para entrenadores PokeOracle está casi lista.',
+    communityRoadmapLead: 'Estamos construyendo la red social definitiva para entrenadores PokeOracle. Pronto podrás:',
+    roadmapFeedTitle: 'Feed de Comunidad',
+    roadmapFeedBody: "Publicar tus Pokémon creados, compartir equipos y recibir 'Me Gusta'.",
+    roadmapFriendsTitle: 'Sistema de Amigos & DMs',
+    roadmapFriendsBody: 'Agregar amigos, enviar mensajes directos y chatear en tiempo real.',
+    roadmapBattlesTitle: 'Combates Multijugador 6v6',
+    roadmapBattlesBody: 'Desafiar a tus amigos o entrar a salas de combate aleatorias con tus equipos de la Pokédex.',
+    communityTeaserFoot: 'Mantente atento — la red de entrenadores se está calentando.',
+    directMessages: 'Mensajes Directos',
+    noMessages: 'No tienes mensajes aún',
+    noMessagesHint: 'Cuando lleguen amigos, tus conversaciones aparecerán aquí.',
+    publishTitle: 'Nueva publicación',
+    publishHint: 'Selecciona un Pokémon de la Pokédex (vista previa simulada).',
+    publishSearch: 'Buscar Pokémon…',
+    publishSimulated: 'Publicación simulada — el feed llega pronto',
+    emptySlot: 'Vacío',
+    simulator: 'Simulador',
   },
   'es-ES': {
     status: 'Estado',
@@ -472,6 +544,30 @@ const UI: Record<LocaleId, UiMessages> = {
     created: 'Pokémon creados',
     likes: 'Me gusta recibidos',
     friends: 'Número de amigos',
+    community: 'Comunidad',
+    backToSimulator: 'Simulador',
+    publish: 'Publicar',
+    randomBattle: 'Combate aleatorio',
+    randomBattleSoon: 'Emparejamiento aleatorio — próximamente',
+    comingSoon: 'PRÓXIMAMENTE',
+    communityIntro: 'La red social para entrenadores PokeOracle está casi lista.',
+    communityRoadmapLead: 'Estamos construyendo la red social definitiva para entrenadores PokeOracle. Pronto podrás:',
+    roadmapFeedTitle: 'Feed de comunidad',
+    roadmapFeedBody: "Publicar tus Pokémon creados, compartir equipos y recibir 'Me gusta'.",
+    roadmapFriendsTitle: 'Sistema de amigos y MD',
+    roadmapFriendsBody: 'Añadir amigos, enviar mensajes directos y chatear en tiempo real.',
+    roadmapBattlesTitle: 'Combates multijugador 6v6',
+    roadmapBattlesBody: 'Desafiar a tus amigos o entrar en salas de combate aleatorias con tus equipos de la Pokédex.',
+    communityTeaserFoot: 'Mantente atento: la red de entrenadores se está preparando.',
+    directMessages: 'Mensajes directos',
+    noMessages: 'No tienes mensajes aún',
+    noMessagesHint: 'Cuando lleguen amigos, tus conversaciones aparecerán aquí.',
+    publishTitle: 'Nueva publicación',
+    publishHint: 'Selecciona un Pokémon de la Pokédex (vista previa simulada).',
+    publishSearch: 'Buscar Pokémon…',
+    publishSimulated: 'Publicación simulada: el feed llega pronto',
+    emptySlot: 'Vacío',
+    simulator: 'Simulador',
   },
 };
 
