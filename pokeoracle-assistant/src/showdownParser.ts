@@ -1,4 +1,12 @@
 import type { Move, Pokemon, PokemonCatalogEntry, PokemonType, StatusEffect } from './types';
+import {
+  ABILITY_ALIAS_INDEX,
+  ITEM_ALIAS_INDEX,
+  MOVE_ALIAS_INDEX,
+  matchInList,
+  namesMatch,
+  slugify,
+} from './i18n';
 
 export interface ParsedShowdownPokemon {
   species: string;
@@ -45,15 +53,6 @@ const EMPTY_MOVE = (): Move => ({
   isFixedDamage: false,
   fixedDamageValue: 0,
 });
-
-function normalize(value: string): string {
-  return value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '')
-    .trim();
-}
 
 function parseStatBlock(
   line: string,
@@ -102,7 +101,6 @@ export function parseShowdownTeam(text: string): ShowdownParseResult {
     if (lines.length === 0) continue;
 
     const header = lines[0];
-    // "Nickname (Species) (M) @ Item" | "Species @ Item" | "Species"
     let species = header;
     let nickname: string | undefined;
     let item: string | undefined;
@@ -113,14 +111,11 @@ export function parseShowdownTeam(text: string): ShowdownParseResult {
       species = header.slice(0, atIdx).trim();
     }
 
-    // Quitar género al final: (M) / (F)
     species = species.replace(/\s*\((?:M|F|m|f)\)\s*$/, '').trim();
 
-    // Nickname (Species)
     const nickMatch = species.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
     if (nickMatch) {
       const maybeSpecies = nickMatch[2].trim();
-      // Si el paréntesis parece género ya se quitó; si queda, es especie
       if (!/^[MF]$/i.test(maybeSpecies)) {
         nickname = nickMatch[1].trim();
         species = maybeSpecies;
@@ -173,14 +168,13 @@ export function parseShowdownTeam(text: string): ShowdownParseResult {
         continue;
       }
 
-      // Ignorar shiny / tera / happiness etc.
       if (/^(Shiny|Tera Type|Gigantamax|Happiness|Hidden Power):/i.test(line)) {
         continue;
       }
 
       const moveLine = line.match(/^[-•]\s*(.+)$/);
       if (moveLine) {
-        const moveName = moveLine[1].replace(/\s*\/\s*.*$/, '').trim(); // quitar opciones alternativas
+        const moveName = moveLine[1].replace(/\s*\/\s*.*$/, '').trim();
         if (moveName) parsed.moves.push(moveName);
       }
     }
@@ -211,39 +205,40 @@ function findCatalogEntry(
   species: string,
   catalog: PokemonCatalogEntry[]
 ): PokemonCatalogEntry | undefined {
-  const target = normalize(species);
+  const target = slugify(species);
   return (
-    catalog.find((p) => normalize(p.name) === target) ||
-    catalog.find((p) => normalize(p.name).includes(target) || target.includes(normalize(p.name)))
+    catalog.find((p) => slugify(p.name) === target) ||
+    catalog.find((p) => {
+      const s = slugify(p.name);
+      return s.includes(target) || target.includes(s);
+    })
   );
 }
 
+/** Busca movimiento con matching trilingüe (slug + alias EN/es-ES/es-LA). */
 function findMove(name: string, catalog: Move[]): Move | undefined {
-  const target = normalize(name);
-  return (
-    catalog.find((m) => normalize(m.name) === target) ||
-    catalog.find((m) => normalize(m.name).includes(target) || target.includes(normalize(m.name)))
+  const byAlias = matchInList(
+    name,
+    catalog.map((m) => m.name),
+    MOVE_ALIAS_INDEX
   );
+  if (byAlias) {
+    return catalog.find((m) => m.name === byAlias);
+  }
+  // última pasada: namesMatch directo
+  return catalog.find((m) => namesMatch(name, m.name, MOVE_ALIAS_INDEX));
 }
 
 function findAbility(name: string | undefined, catalog: string[]): string | undefined {
   if (!name) return undefined;
-  const target = normalize(name);
-  return (
-    catalog.find((a) => normalize(a) === target) ||
-    catalog.find((a) => normalize(a).includes(target) || target.includes(normalize(a))) ||
-    name
-  );
+  const matched = matchInList(name, catalog, ABILITY_ALIAS_INDEX);
+  return matched ?? name;
 }
 
 function findItem(name: string | undefined, catalog: string[]): string | undefined {
   if (!name) return undefined;
-  const target = normalize(name);
-  return (
-    catalog.find((i) => normalize(i) === target) ||
-    catalog.find((i) => normalize(i).includes(target) || target.includes(normalize(i))) ||
-    name
-  );
+  const matched = matchInList(name, catalog, ITEM_ALIAS_INDEX);
+  return matched ?? name;
 }
 
 function placeholderPokemon(slot: number): Pokemon {
@@ -266,6 +261,7 @@ function placeholderPokemon(slot: number): Pokemon {
 
 /**
  * Convierte un equipo Showdown parseado al modelo Pokemon[] de la app (6 slots).
+ * Movimientos desconocidos se conservan con su nombre original (nunca quedan vacíos).
  */
 export function showdownToParty(
   parsed: ParsedShowdownPokemon[],
@@ -293,7 +289,7 @@ export function showdownToParty(
       if (!moveName) return EMPTY_MOVE();
       const found = findMove(moveName, catalogs.moves);
       if (!found) {
-        warnings.push(`Movimiento «${moveName}» no está en el catálogo local.`);
+        warnings.push(`Movimiento «${moveName}» no está en el catálogo local; se conservó el nombre.`);
         return {
           ...EMPTY_MOVE(),
           name: moveName,

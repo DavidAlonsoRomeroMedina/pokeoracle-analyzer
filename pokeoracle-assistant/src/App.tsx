@@ -12,6 +12,28 @@ import { PokemonBackground } from './PokemonBackground';
 import { parseShowdownTeam, showdownToParty } from './showdownParser';
 import { THEME_OPTIONS, ThemeId, loadStoredTheme, persistTheme } from './themes';
 import {
+  LocaleId,
+  loadStoredLocale,
+  persistLocale,
+  t,
+} from './i18n';
+import {
+  CreatedPokemon,
+  UserProfile,
+  loadCreatedPokemon,
+  loadProfile,
+  loadSeenSpecies,
+  markSpeciesSeen,
+  persistCreatedPokemon,
+  persistProfile,
+} from './userStorage';
+import {
+  CreatePokemonModal,
+  LanguageModal,
+  PokedexModal,
+  ProfileModal,
+} from './v15Panels';
+import {
   Sparkles,
   RotateCcw,
   Sliders,
@@ -20,7 +42,10 @@ import {
   X,
   Upload,
   Palette,
-  ChevronRight
+  ChevronRight,
+  User,
+  Wand2,
+  Globe,
 } from 'lucide-react';
 
 const TYPES_LIST: PokemonType[] = [
@@ -41,6 +66,17 @@ export default function App() {
   // --- Tema ---
   const [theme, setTheme] = useState<ThemeId>(() => loadStoredTheme());
   const [settingsOpen, setSettingsOpen] = useState(false);
+
+  // --- i18n / Perfil / Crear / Pokédex ---
+  const [locale, setLocale] = useState<LocaleId>(() => loadStoredLocale());
+  const [langOpen, setLangOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [pokedexOpen, setPokedexOpen] = useState(false);
+  const [profile, setProfile] = useState<UserProfile>(() => loadProfile());
+  const [createdPokemon, setCreatedPokemon] = useState<CreatedPokemon[]>(() => loadCreatedPokemon());
+  const [seenSpecies, setSeenSpecies] = useState<string[]>(() => loadSeenSpecies());
+  const ui = t(locale);
 
   // --- Importador Showdown ---
   const [importOpen, setImportOpen] = useState(false);
@@ -113,6 +149,18 @@ export default function App() {
     persistTheme(theme);
   }, [theme]);
 
+  useEffect(() => {
+    persistLocale(locale);
+  }, [locale]);
+
+  useEffect(() => {
+    persistProfile(profile);
+  }, [profile]);
+
+  useEffect(() => {
+    persistCreatedPokemon(createdPokemon);
+  }, [createdPokemon]);
+
   // Load catalogs on mount
   useEffect(() => {
     const loadCatalogs = async () => {
@@ -174,6 +222,12 @@ export default function App() {
 
         setPlayerParty(initialPlayer);
         setRivalParty(initialRival);
+        setSeenSpecies((prev) =>
+          markSpeciesSeen(prev, [
+            ...initialPlayer.map((p) => p.name),
+            ...initialRival.map((p) => p.name),
+          ])
+        );
 
       } catch (e) {
         console.error("Error fetching catalogs", e);
@@ -203,6 +257,16 @@ export default function App() {
       const data = await res.json();
       if (data.sessionId) {
         setSessionId(data.sessionId);
+        setSeenSpecies((prev) =>
+          markSpeciesSeen(prev, [
+            ...playerParty.map((p) => p.name),
+            ...rivalParty.map((p) => p.name),
+          ])
+        );
+        setProfile((p) => ({
+          ...p,
+          stats: { ...p.stats, battles: p.stats.battles + 1 },
+        }));
         // Call Predict Lead immediately
         const leadRes = await fetch(`/api/battle/${data.sessionId}/predict-lead`);
         const leadData = await leadRes.json();
@@ -375,6 +439,7 @@ export default function App() {
         item.spAttack = matchSpecies.spAttack;
         item.spDefense = matchSpecies.spDefense;
         item.speed = matchSpecies.speed;
+        setSeenSpecies((prev) => markSpeciesSeen(prev, [matchSpecies.name]));
       } else {
         item.name = value;
       }
@@ -396,11 +461,24 @@ export default function App() {
     const item = { ...targetParty[slotIdx] };
     const matchMove = movesCatalog.find(m => m.name === moveName);
 
+    const updatedMoves = [...item.moves];
     if (matchMove) {
-      const updatedMoves = [...item.moves];
       updatedMoves[moveIdx] = { ...matchMove };
-      item.moves = updatedMoves;
+    } else if (moveName) {
+      // Conservar movimientos personalizados / no catalogados (ej. Imagen / Facade)
+      updatedMoves[moveIdx] = {
+        name: moveName,
+        type: 'Normal',
+        category: 'Physical',
+        power: 70,
+        accuracy: 100,
+        statusChance: 0,
+        statusEffect: 'None',
+        isFixedDamage: false,
+        fixedDamageValue: 0,
+      };
     }
+    item.moves = updatedMoves;
 
     if (party === 'player') {
       targetParty[slotIdx] = item;
@@ -445,6 +523,7 @@ export default function App() {
       setRivalParty(party);
       setEditingParty('rival');
     }
+    setSeenSpecies((prev) => markSpeciesSeen(prev, party.map((p) => p.name)));
     setSelectedSlotIndex(0);
     setImportOpen(false);
     setImportError(null);
@@ -516,9 +595,9 @@ export default function App() {
               <div className="glass-panel p-4 space-y-4 animate-rise">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Estado</p>
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">{ui.status}</p>
                     <p className="text-sm font-semibold text-white mt-1">
-                      {sessionId ? 'Sesión activa' : 'Armando equipos'}
+                      {sessionId ? ui.sessionActive : ui.buildingTeams}
                     </p>
                   </div>
                   <span className={`w-3 h-3 rounded-full ${sessionId ? 'bg-emerald-400 animate-pulse' : 'bg-amber-300 animate-pulse'}`} />
@@ -527,29 +606,54 @@ export default function App() {
                 <div className="grid grid-cols-1 gap-2">
                   <button
                     type="button"
+                    onClick={() => setProfileOpen(true)}
+                    className="btn-side flex items-center gap-2 px-3 py-2.5 bg-violet-500/90 text-white text-xs"
+                  >
+                    <User className="w-4 h-4" /> {ui.profile}
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => setSettingsOpen(true)}
                     className="btn-side flex items-center gap-2 px-3 py-2.5 bg-emerald-500/90 text-white text-xs"
                   >
-                    <Sliders className="w-4 h-4" /> Configuración
+                    <Sliders className="w-4 h-4" /> {ui.settings}
                   </button>
                   <button type="button" onClick={handleResetSession} className="btn-side flex items-center gap-2 px-3 py-2.5 bg-sky-500/90 text-white text-xs">
-                    <RotateCcw className="w-4 h-4" /> Reiniciar
+                    <RotateCcw className="w-4 h-4" /> {ui.reset}
                   </button>
-                  <div className="btn-side flex items-center gap-2 px-3 py-2.5 bg-white/10 text-white/80 text-xs">
-                    <BookOpen className="w-4 h-4" /> ES · Español
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLangOpen(true)}
+                    className="btn-side flex items-center gap-2 px-3 py-2.5 bg-white/10 hover:bg-white/15 text-white/90 text-xs"
+                  >
+                    <Globe className="w-4 h-4" /> {ui.language}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCreateOpen(true)}
+                    className="btn-side flex items-center gap-2 px-3 py-2.5 bg-amber-500/90 text-white text-xs"
+                  >
+                    <Wand2 className="w-4 h-4" /> {ui.create}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPokedexOpen(true)}
+                    className="btn-side flex items-center gap-2 px-3 py-2.5 bg-rose-500/90 text-white text-xs"
+                  >
+                    <BookOpen className="w-4 h-4" /> {ui.pokedex}
+                  </button>
                 </div>
               </div>
 
               <div className="glass-panel p-4 space-y-3 animate-rise" style={{ animationDelay: '0.08s' }}>
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Tu plantel</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">{ui.yourSquad}</p>
                   <button
                     type="button"
                     onClick={() => openImportModal('player')}
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-[9px] font-bold uppercase tracking-wider text-white/80"
                   >
-                    <Upload className="w-3 h-3" /> Importar
+                    <Upload className="w-3 h-3" /> {ui.import}
                   </button>
                 </div>
                 {renderPartyGrid(playerParty, activePlayerIdx)}
@@ -557,20 +661,20 @@ export default function App() {
 
               <div className="glass-panel p-4 space-y-3 animate-rise" style={{ animationDelay: '0.11s' }}>
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Plantel rival</p>
+                  <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">{ui.rivalSquad}</p>
                   <button
                     type="button"
                     onClick={() => openImportModal('rival')}
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/10 hover:bg-white/15 border border-white/15 text-[9px] font-bold uppercase tracking-wider text-white/80"
                   >
-                    <Upload className="w-3 h-3" /> Importar
+                    <Upload className="w-3 h-3" /> {ui.import}
                   </button>
                 </div>
                 {renderPartyGrid(rivalParty, activeRivalIdx)}
               </div>
 
               <div className="glass-panel p-4 space-y-2 animate-rise" style={{ animationDelay: '0.14s' }}>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Motor</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">{ui.engine}</p>
                 <p className="text-[11px] text-white/60 leading-relaxed">
                   Expectiminimax · profundidad 3<br />
                   Catálogo nacional (1025) con sprites vivos
@@ -777,9 +881,20 @@ export default function App() {
                                   onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'ability', e.target.value)}
                                   className="w-full p-2 bg-black/30 border border-white/15 text-xs font-semibold"
                                 >
-                                  {abilitiesCatalog.map((abil) => (
-                                    <option key={abil} value={abil}>{abil}</option>
-                                  ))}
+                                  {(() => {
+                                    const currentAbility = (currentEditingPokemon as any).ability || 'None';
+                                    const inCatalog = abilitiesCatalog.includes(currentAbility);
+                                    return (
+                                      <>
+                                        {!inCatalog && currentAbility && (
+                                          <option value={currentAbility}>{currentAbility}</option>
+                                        )}
+                                        {abilitiesCatalog.map((abil) => (
+                                          <option key={abil} value={abil}>{abil}</option>
+                                        ))}
+                                      </>
+                                    );
+                                  })()}
                                 </select>
                               </div>
 
@@ -790,9 +905,20 @@ export default function App() {
                                   onChange={(e) => handleUpdatePokemonField(editingParty, selectedSlotIndex, 'heldItem', e.target.value)}
                                   className="w-full p-2 bg-black/30 border border-white/15 text-xs font-semibold"
                                 >
-                                  {itemsCatalog.map((it) => (
-                                    <option key={it} value={it}>{it}</option>
-                                  ))}
+                                  {(() => {
+                                    const currentItem = (currentEditingPokemon as any).heldItem || 'None';
+                                    const inCatalog = itemsCatalog.includes(currentItem);
+                                    return (
+                                      <>
+                                        {!inCatalog && currentItem && (
+                                          <option value={currentItem}>{currentItem}</option>
+                                        )}
+                                        {itemsCatalog.map((it) => (
+                                          <option key={it} value={it}>{it}</option>
+                                        ))}
+                                      </>
+                                    );
+                                  })()}
                                 </select>
                               </div>
                             </div>
@@ -803,6 +929,7 @@ export default function App() {
                               <div className="grid grid-cols-2 gap-2">
                                 {[0, 1, 2, 3].map((moveIdx) => {
                                   const currentMoveName = currentEditingPokemon.moves[moveIdx]?.name || '';
+                                  const inCatalog = movesCatalog.some((mv) => mv.name === currentMoveName);
                                   return (
                                     <select
                                       key={moveIdx}
@@ -811,6 +938,9 @@ export default function App() {
                                       className="w-full p-2 bg-black/30 border border-white/15 text-[11px] font-semibold"
                                     >
                                       <option value="">-- Vacío --</option>
+                                      {!inCatalog && currentMoveName && (
+                                        <option value={currentMoveName}>{currentMoveName} (custom)</option>
+                                      )}
                                       {movesCatalog.map((mv) => (
                                         <option key={mv.name} value={mv.name}>{mv.name} ({mv.type})</option>
                                       ))}
@@ -1455,10 +1585,10 @@ export default function App() {
                 </div>
                 <div>
                   <h2 id="settings-title" className="text-lg font-display font-bold text-white leading-tight">
-                    Configuración & Tema Visual
+                    {ui.themeTitle}
                   </h2>
                   <p className="text-[11px] text-white/50 mt-0.5">
-                    Elige un aspecto. Se guarda automáticamente en este navegador.
+                    {ui.themeHint}
                   </p>
                 </div>
               </div>
@@ -1466,7 +1596,7 @@ export default function App() {
                 type="button"
                 onClick={() => setSettingsOpen(false)}
                 className="text-white/50 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
-                aria-label="Cerrar"
+                aria-label={ui.close}
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1490,7 +1620,7 @@ export default function App() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-sm font-bold">{opt.label}</div>
                     {theme === opt.id && (
-                      <span className="text-[9px] uppercase tracking-wider font-bold text-emerald-300">Activo</span>
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-emerald-300">{ui.active}</span>
                     )}
                   </div>
                   <div className="text-[11px] text-white/45 mt-1 leading-snug">{opt.description}</div>
@@ -1501,21 +1631,63 @@ export default function App() {
         </div>
       )}
 
+      {langOpen && (
+        <LanguageModal
+          locale={locale}
+          onSelect={setLocale}
+          onClose={() => setLangOpen(false)}
+        />
+      )}
+
+      {profileOpen && (
+        <ProfileModal
+          locale={locale}
+          profile={profile}
+          onChange={setProfile}
+          onClose={() => setProfileOpen(false)}
+        />
+      )}
+
+      {createOpen && (
+        <CreatePokemonModal
+          locale={locale}
+          pokemonCatalog={pokemonCatalog}
+          movesCatalog={movesCatalog}
+          abilitiesCatalog={abilitiesCatalog}
+          onSave={(created) => {
+            setCreatedPokemon((prev) => [created, ...prev]);
+            setProfile((p) => ({
+              ...p,
+              stats: { ...p.stats, created: p.stats.created + 1 },
+            }));
+          }}
+          onClose={() => setCreateOpen(false)}
+        />
+      )}
+
+      {pokedexOpen && (
+        <PokedexModal
+          locale={locale}
+          pokemonCatalog={pokemonCatalog}
+          movesCatalog={movesCatalog}
+          abilitiesCatalog={abilitiesCatalog}
+          seenSpecies={seenSpecies}
+          created={createdPokemon}
+          onClose={() => setPokedexOpen(false)}
+        />
+      )}
+
       {/* Modal Importar Showdown */}
       {importOpen && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="import-title">
-          <div className="modal-panel space-y-4">
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="import-title" onClick={() => setImportOpen(false)}>
+          <div className="modal-panel space-y-4" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 id="import-title" className="text-lg font-display font-bold text-white">
-                  Importar equipo Showdown
+                  {ui.importTitle}
                 </h2>
                 <p className="text-xs text-white/55 mt-1">
-                  Pega el texto exportado de Pokémon Showdown para el{' '}
-                  <span className="font-bold text-white/80">
-                    {importTarget === 'player' ? 'plantel aliado' : 'plantel rival'}
-                  </span>
-                  .
+                  {importTarget === 'player' ? ui.importHintPlayer : ui.importHintRival}
                 </p>
               </div>
               <button type="button" onClick={() => setImportOpen(false)} className="text-white/50 hover:text-white p-1">
@@ -1547,14 +1719,14 @@ export default function App() {
                 onClick={() => setImportOpen(false)}
                 className="px-4 py-2.5 btn-ghost text-xs font-bold uppercase tracking-wider"
               >
-                Cancelar
+                {ui.cancel}
               </button>
               <button
                 type="button"
                 onClick={handleImportShowdown}
                 className="flex-1 py-2.5 btn-accent text-xs font-bold uppercase tracking-wider"
               >
-                Aplicar al equipo
+                {ui.applyTeam}
               </button>
             </div>
           </div>
