@@ -524,44 +524,14 @@ export default function App() {
                   <span className={`w-3 h-3 rounded-full ${sessionId ? 'bg-emerald-400 animate-pulse' : 'bg-amber-300 animate-pulse'}`} />
                 </div>
 
-                <div className="grid grid-cols-1 gap-2 relative">
+                <div className="grid grid-cols-1 gap-2">
                   <button
                     type="button"
-                    onClick={() => setSettingsOpen((v) => !v)}
+                    onClick={() => setSettingsOpen(true)}
                     className="btn-side flex items-center gap-2 px-3 py-2.5 bg-emerald-500/90 text-white text-xs"
                   >
                     <Sliders className="w-4 h-4" /> Configuración
                   </button>
-                  {settingsOpen && (
-                    <div className="absolute left-0 right-0 top-full mt-2 z-30 glass-panel-strong p-3 space-y-2 shadow-2xl">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[10px] uppercase tracking-widest text-white/70 font-bold flex items-center gap-1.5">
-                          <Palette className="w-3.5 h-3.5" /> Tema visual
-                        </span>
-                        <button type="button" onClick={() => setSettingsOpen(false)} className="text-white/50 hover:text-white">
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                      {THEME_OPTIONS.map((opt) => (
-                        <button
-                          key={opt.id}
-                          type="button"
-                          onClick={() => {
-                            setTheme(opt.id);
-                            setSettingsOpen(false);
-                          }}
-                          className={`w-full text-left px-3 py-2 rounded-xl border transition-all ${
-                            theme === opt.id
-                              ? 'bg-white/15 border-white/30 text-white'
-                              : 'bg-black/20 border-white/10 text-white/70 hover:bg-white/10'
-                          }`}
-                        >
-                          <div className="text-xs font-bold">{opt.label}</div>
-                          <div className="text-[10px] text-white/45 mt-0.5">{opt.description}</div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   <button type="button" onClick={handleResetSession} className="btn-side flex items-center gap-2 px-3 py-2.5 bg-sky-500/90 text-white text-xs">
                     <RotateCcw className="w-4 h-4" /> Reiniciar
                   </button>
@@ -1464,6 +1434,72 @@ export default function App() {
             </section>
           </>
       </main>
+
+      {/* Modal Configuración & Tema Visual */}
+      {settingsOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-5 bg-black/60 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="settings-title"
+          onClick={() => setSettingsOpen(false)}
+        >
+          <div
+            className="modal-panel w-full max-w-lg space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-400/30 flex items-center justify-center">
+                  <Palette className="w-4 h-4 text-emerald-300" />
+                </div>
+                <div>
+                  <h2 id="settings-title" className="text-lg font-display font-bold text-white leading-tight">
+                    Configuración & Tema Visual
+                  </h2>
+                  <p className="text-[11px] text-white/50 mt-0.5">
+                    Elige un aspecto. Se guarda automáticamente en este navegador.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(false)}
+                className="text-white/50 hover:text-white p-1.5 rounded-lg hover:bg-white/10 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {THEME_OPTIONS.map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => {
+                    setTheme(opt.id);
+                    setSettingsOpen(false);
+                  }}
+                  className={`text-left px-4 py-3.5 rounded-2xl border transition-all ${
+                    theme === opt.id
+                      ? 'bg-white/15 border-emerald-400/50 text-white shadow-lg shadow-emerald-500/10'
+                      : 'bg-black/25 border-white/10 text-white/75 hover:bg-white/10 hover:border-white/25'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-sm font-bold">{opt.label}</div>
+                    {theme === opt.id && (
+                      <span className="text-[9px] uppercase tracking-wider font-bold text-emerald-300">Activo</span>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-white/45 mt-1 leading-snug">{opt.description}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Importar Showdown */}
       {importOpen && (
