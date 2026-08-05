@@ -1,0 +1,34 @@
+# Blueprint de Render: https://dashboard.render.com/select-repo?type=blueprint
+# 1) Conecta este repo de GitHub
+# 2) Elige la rama cursor/sqlite-seed-cloud-deploy-b208 (o main tras merge)
+# 3) Aplica el Blueprint y espera el deploy + seeding (~varios minutos)
+
+services:
+  - type: web
+    name: pokeoracle
+    runtime: docker
+    plan: starter
+    region: oregon
+    branch: cursor/sqlite-seed-cloud-deploy-b208
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/catalog/status
+    # Disco persistente: evita re-descargar los 1025 Pokémon en cada reinicio.
+    # Si usas el plan free, quita este bloque "disk" (el filesystem será efímero).
+    disk:
+      name: pokeoracle-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__PokeOracle
+        value: Data Source=/data/pokeoracle.db
+      - key: PokeApi__PokemonCount
+        value: "1025"
+      - key: PokeApi__MaxConcurrentRequests
+        value: "6"
+      - key: PokeApi__RequestTimeoutSeconds
+        value: "60"
+      - key: PokeApi__ItemScanLimit
+        value: "800"

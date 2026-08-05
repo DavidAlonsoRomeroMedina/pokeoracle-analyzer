@@ -12,18 +12,18 @@ jobs:
 
     steps:
     - name: Checkout del código
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    - name: Configurar .NET 8
-      uses: actions/setup-dotnet@v3
+    - name: Configurar .NET 10
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Restaurar dependencias
-      run: dotnet restore PokeOracle-Backend/PokeOracle.WebApi/PokeOracle.WebApi.csproj
+      run: dotnet restore PokeOracle-Backend/PokeOracle.slnx
 
-    - name: Compilar el proyecto
-      run: dotnet build PokeOracle-Backend/PokeOracle.WebApi/PokeOracle.WebApi.csproj --no-restore
+    - name: Compilar la solución
+      run: dotnet build PokeOracle-Backend/PokeOracle.slnx --no-restore
 
     - name: Ejecutar Pruebas Unitarias
-      run: dotnet test PokeOracle-Backend/PokeOracle.Tests/PokeOracle.Tests.csproj --no-build --verbosity normal
+      run: dotnet test PokeOracle-Backend/PokeOracle.Tests/PokeOracle.Tests.csproj --verbosity normal

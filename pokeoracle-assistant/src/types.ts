@@ -52,6 +52,22 @@ export interface Pokemon {
   heldItem?: string;
 }
 
+/** Entrada del catálogo que sirve el backend para rellenar equipos. */
+export interface PokemonCatalogEntry {
+  pokedexNumber: number;
+  name: string;
+  types: PokemonType[];
+  hp: number;
+  attack: number;
+  defense: number;
+  spAttack: number;
+  spDefense: number;
+  speed: number;
+  /** Ausente si el backend está sirviendo el catálogo local de respaldo. */
+  spriteUrl?: string | null;
+  artworkUrl?: string | null;
+}
+
 export interface BattleSession {
   sessionId: string;
   playerParty: Pokemon[];
